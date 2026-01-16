@@ -2,25 +2,34 @@ import { test, expect } from '@playwright/test'
 import { Login } from '../../pages/LoginPage'
 import { ENV } from '../../utils/env'
 import { Logada } from '../../pages/HomePage'
+import { Toast } from '../../components/Toast'
 
-test.beforeAll(async ({ page }) => {
+test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
-    const logada: Logada = new Logada(page)
-    await login.login_user(ENV.USER,ENV.PASSWORD,1)
-    await logada.logado()
+    await login.login_user(ENV.USER, ENV.PASSWORD, 1)
+    await page.locator('id=sidebar-pedidos-venda').click()
 })
 
 test.describe('Pedido de Venda – Cadastro do Pedido', () => {
     test('Pedido - Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na pagina de cadastro de pedidos.
+        const logada: Logada = new Logada(page)
+        const message = 'Pedidos'
+        await logada.validarMenu(message)
 
         // Quando clico no botão "novo".
+        await page.locator('id=adicionar-button').click()
 
         // Então deve abrir a tela para o cadastro de um novo pedido.
+        const cadastroPedido = page.locator('id=form-input-cliente')
+        await expect(cadastroPedido).toBeVisible()
     })
 
     test('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
+        const logada: Logada = new Logada(page)
+        const message = 'Pedidos'
+        await logada.validarMenu(message)
 
         // E informo somente os campos da cabeça do pedido sem inserir itens.
 
@@ -30,19 +39,44 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
         // Excluir pedido via API. 
     });
-
 })
 
 test.describe('Pedido de Venda – Validações da Cabeça', () => {
     test('Pedido - Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
+        const logada: Logada = new Logada(page)
+        const toast: Toast = new Toast(page)
+        const message = 'Pedidos'
+        await logada.validarMenu(message)
+        await page.locator('id=adicionar-button').click()
 
         // Quando eu clico no botão "Salvar" sem preencher nenhum campo.
+        await page.locator('id=form-button-salvar').click()
 
         // Então devo ver um Toast informando que preciso preencher os campos obrigatórios e os campos 
         // (Cliente, Valor dos itens e Lista de Preço) deverão ficar em destaque.
+        const messageToast = 'Prencha todos os campos obrigatórios.'
+        await toast.toast(messageToast)
     });
 
+    test('Pedido - Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+        // Dado que estou na tela de cadastro de pedido.
+        const logada: Logada = new Logada(page)
+        const toast: Toast = new Toast(page)
+        const message = 'Pedidos'
+        await logada.validarMenu(message)
+        await page.locator('id=adicionar-button').click()
+
+        // Quando digito um caracter inválido (letras) onde não é permitido.
+        // Campos numéricos: cliente, vendedor, condição de pagamento e lista de preço 
+        await page.locator('div.tab-content #form-input-cliente input.sc-lookup-input-value').fill('sss')
+        await page.locator('div.tab-content #form-input-condicao-pagamento input.sc-lookup-input-value').fill('sss')
+        await page.locator('div.tab-content #form-input-lista-preco input.sc-lookup-input-value').fill('sss')
+
+        // Então devo ver um Toast informando que houve um erro
+        const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
+        await toast.toast(messageToast)
+    });
 })
 
 test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
@@ -78,7 +112,6 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
 
         // Então o modal deverá fechar e voltar para tela de pedidos sem que tenha incluido nenhum item.
     });
-
 })
 
 test.describe('Pedido de Venda – Validações do Item', () => {
@@ -100,7 +133,6 @@ test.describe('Pedido de Venda – Validações do Item', () => {
         // Então o sistema deverá exibir um Toast com uma mensagem de erro 
         // TODO: mensagem hoje não está sendo tratada, lembrar de pedir para o desenvolvimento tratar e deixar com algo mais amigável para o usuário final. 
     });
-
 })
 
 test.describe('Pedido de Venda – Cálculos do Item', () => {
@@ -137,7 +169,6 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
         // Entãoo sistema deverá informar o valor de desconto no campo "Valor do desconto Total"
         // E fazer o abatimento desse valor no total do pedido.
     });
-
 })
 
 test.describe('Pedido de Venda – Grid de Itens', () => {
@@ -162,7 +193,6 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
 
         // Então o sistema deverá recalcular o valor total do pedido.
     });
-
 })
 
 test.describe('Pedido de Venda – Exclusão de Itens', () => {
@@ -183,7 +213,6 @@ test.describe('Pedido de Venda – Exclusão de Itens', () => {
         // E a cabeça do pedido deverá ser mantida.
         // E atualizar o campo "Valor Total" zerando essa informação
     });
-
 })
 
 test.describe('Pedido de Venda – Assistente de Digitação', () => {
@@ -204,7 +233,6 @@ test.describe('Pedido de Venda – Assistente de Digitação', () => {
         // Então clico no botão "Salvar" o pop-up deverá fechar e abrir novamente em branco para a seleção de um novo item.
 
     });
-
 })
 
 test.describe('Pedido de Venda – Assistente (Lista de Materiais)', () => {
@@ -226,7 +254,6 @@ test.describe('Pedido de Venda – Assistente (Lista de Materiais)', () => {
 
         // Então os itens que informei a quantidade deverão ser exibidos na grid do pedido de venda.
     });
-
 })
 
 test.describe('Pedido de Venda – Importação por Excel', () => {
@@ -249,7 +276,6 @@ test.describe('Pedido de Venda – Importação por Excel', () => {
         // Após selecionar o sistema deverá comparar os intens da planilha e se estiver de acordo coma as margens parametrizadas no sistema
         // permitir importar os itens para o pedido. 
     });
-
 })
 
 test.describe('Pedido de Venda – Documentos', () => {
@@ -269,5 +295,4 @@ test.describe('Pedido de Venda – Documentos', () => {
 
         // Então o sistema deverá excluir esse documento desse pedido de venda.
     });
-
 })

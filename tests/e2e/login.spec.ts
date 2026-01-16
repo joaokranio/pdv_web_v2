@@ -29,7 +29,7 @@ test('Deve permitir login com credenciais válidas', async ({ page }) => {
 
 test('Não deve permitir login com usuário inválido', async ({ page }) => {
     // Dado que eu tente digitar um usuário incorreto.
-    const message = 'Erro ao tentar realizar a ação'
+    const message = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
     const login: Login = new Login(page)
     const toast: Toast = new Toast(page)
     await login.user('SSSSSS')
@@ -45,7 +45,7 @@ test('Deve exibir toast ao falhar login', async ({ page }) => {
     // Dado que eu digite o usuário correto porém a senha incorreta.
     const login: Login = new Login(page)
     const toast: Toast = new Toast(page)
-    const message1 = 'Credenciais inválidas.'
+    const message1 = 'ATENÇÃO! Credenciais inválidas.Verifique se digitou corretamente.'
     const message2 = 'Action not performed'
     await login.user(ENV.USER)
     await login.pass('SSSSS')

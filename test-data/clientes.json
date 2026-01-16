@@ -1,0 +1,30 @@
+{
+    "cabecaPedido": {
+        "cliente":{
+            "codigo": "1223"
+        },
+        "vendedor": {
+            "codigo":"10"
+        },
+        "condicaoPagamento":{
+            "codigo": ""
+        },
+        "listaPreco":{
+            "codigo":""
+        }
+    },
+    "pedidoItem": {
+        "cliente":{
+            "codigo": "1223"
+        },
+        "vendedor": {
+            "codigo":"10"
+        },
+        "condicaoPagamento":{
+            "codigo": ""
+        },
+        "listaPreco":{
+            "codigo":""
+        }
+    }
+}

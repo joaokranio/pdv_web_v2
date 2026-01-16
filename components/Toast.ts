@@ -9,7 +9,7 @@ export class Toast {
 
     async toast(message: string) {
         const toast = this.page.locator('.toast-message', { hasText: message })
-        await expect(toast).toBeVisible()
+        await expect(toast).toHaveText(message)
     }
 
 }
