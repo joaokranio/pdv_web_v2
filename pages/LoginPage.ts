@@ -28,9 +28,18 @@ export class Login {
         await this.page.locator('id=login-button-entrar').click()
     }
 
-    async placeHolder() {        
-    await expect(this.page.locator('id=login-input-usuario')).toHaveAttribute('placeholder', 'O campo apelido é obrigatório')
-    await expect(this.page.locator('id=login-input-senha')).toHaveAttribute('placeholder', 'O campo senha é obrigatório')
+    async placeHolder() {
+        await expect(this.page.locator('id=login-input-usuario')).toHaveAttribute('placeholder', 'O campo apelido é obrigatório')
+        await expect(this.page.locator('id=login-input-senha')).toHaveAttribute('placeholder', 'O campo senha é obrigatório')
+    }
+
+    async login_user(Usuario: string, password: string, filial:number) {
+        await this.page.goto(ENV.PAGE_URL)
+        await this.page.locator('id=login-input-usuario').fill(Usuario.toString())
+        await this.page.locator('id=login-input-senha').fill(password.toString())
+        await this.page.locator('id=login-select-filial').selectOption(filial.toString())
+        await this.page.locator('id=login-button-entrar').click()
+
     }
 
 }
