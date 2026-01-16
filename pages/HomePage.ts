@@ -21,4 +21,8 @@ export class Logada {
         }
     }
 
+    async validarMenu (message) {        
+    await this.page.locator('span.active').filter(message).focus()
+    }
+
 }

@@ -20,7 +20,8 @@ test('Validação de campos Obrigatórios.', async ({ page }) => {
 
     // Quando eu clico no botão "Salvar" sem preencher nenhum campo.
 
-    // Então devo ver um Toast informando que preciso preencher os campos obrigatórios e os campos deverão ficar em destaque.
+    // Então devo ver um Toast informando que preciso preencher os campos obrigatórios e os campos 
+    // (Cliente, Valor dos itens e Lista de Preço) deverão ficar em destaque.
 
 })
 
@@ -56,11 +57,17 @@ test('Inserir itens no pedido pelo botão adicionar.', async ({ page }) => {
 })
 
 test('Calculo quantidade x valor material do item no pedido.', async ({ page }) => {
-    // Dado que preciso consultar os calculos dos itens do peido.
+    // Dado que preciso consultar os calculos dos itens do pedido.
 
     // Quando quando informo uma quantidade maior ou superior que 2.
 
-    // Então o calculo do sistema deverá considerar a quantidade informada x valor do material + o valor do IPI.
+    // Então o calculo do sistema deverá considerar: 
+    // Valor dos itens = (Qtde x Vlr. Material) - Vlr.Desoneração
+    // Vlr.Total       = Valor dos itens
+    //                  - Vlr.Desconto Total
+    //                  + Vlr. Frete
+    //                  + Vlr.IPI
+    //                  + Vlr.ST
 })
 
 test('Calculo de desconto do item no pedido por procentagem.', async ({ page }) => {
@@ -89,11 +96,11 @@ test('Validar o calculo do campo "Valor Total" do pedido.', async ({ page }) => 
 })
 
 test('Validar informações apresentadas na grid dos itens do pedido.', async ({ page }) => {
-    // Dado que insei alguns itens no pedido.
-
+    // Dado que inseri alguns itens no pedido.
+    
     // Quando retorno para a grid.
 
-    // Então dos calculos dos itens na grid deverão estar respeitando os calculos 
+    // Então os calculos dos itens na grid deverão estar respeitando o seguinte calculo: 
     // Valor dos itens = (Qtde x Vlr. Material) - Vlr.Desoneração
     // Vlr.Total       = Valor dos itens
     //                  - Vlr.Desconto Total
