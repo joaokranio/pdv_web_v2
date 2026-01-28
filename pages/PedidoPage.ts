@@ -8,8 +8,8 @@ export class Pedido {
         this.page = page
     }
 
-    async pedidoVenda() {
-        
+    async novoPedido() {
+        await this.page.locator('id=adicionar-button').click()
     }
 
 }

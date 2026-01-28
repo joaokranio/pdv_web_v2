@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import { Login } from '../../pages/LoginPage'
 import { ENV } from '../../utils/env'
 import { Logada } from '../../pages/HomePage'
+import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
+import dadosPedido from '../../test-data/clientes.json'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
@@ -27,11 +29,16 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
     test('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
-        const logada: Logada = new Logada(page)
-        const message = 'Pedidos'
-        await logada.validarMenu(message)
+        const pedido: Pedido = new Pedido(page)
+        const form = dadosPedido.cabecaPedido
+        await pedido.novoPedido()
 
         // E informo somente os campos da cabeça do pedido sem inserir itens.
+        await page.locator('id=form-input-cliente').locator('input.sc-lookup-input-value').fill(form.cliente)
+        await page.locator('id=form-input-vendedor').locator('input.sc-lookup-input-value').fill(form.vendedor)
+        await page.locator('id=form-input-condicao-pagamento').locator('input.sc-lookup-input-value').fill(form.condicaoPagamento)
+        await page.locator('id=form-input-forma-pagamento').locator('input.sc-lookup-input-value').fill(form.formaPagamento)
+        await page.locator('id=form-input-lista-preco').locator('input.sc-lookup-input-value').fill(form.listaPreco)
 
         // Quando clico no botão salvar.
 
@@ -55,7 +62,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
 
         // Então devo ver um Toast informando que preciso preencher os campos obrigatórios e os campos 
         // (Cliente, Valor dos itens e Lista de Preço) deverão ficar em destaque.
-        const messageToast = 'Prencha todos os campos obrigatórios.'
+        const messageToast = 'ATENÇÃO! Prencha todos os campos obrigatórios.'
         await toast.toast(messageToast)
     });
 
@@ -69,9 +76,11 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
 
         // Quando digito um caracter inválido (letras) onde não é permitido.
         // Campos numéricos: cliente, vendedor, condição de pagamento e lista de preço 
-        await page.locator('div.tab-content #form-input-cliente input.sc-lookup-input-value').fill('sss')
-        await page.locator('div.tab-content #form-input-condicao-pagamento input.sc-lookup-input-value').fill('sss')
-        await page.locator('div.tab-content #form-input-lista-preco input.sc-lookup-input-value').fill('sss')
+        // await page.waitForTimeout(5000)
+        await page.locator('id=form-input-cliente').locator('input.sc-lookup-input-value').fill('sss')
+        await page.locator('id=form-input-vendedor').locator('input.sc-lookup-input-value').fill('sss')
+        await page.locator('id=form-input-condicao-pagamento').locator('input.sc-lookup-input-value').fill('sss')
+        await page.locator('id=form-input-lista-preco').locator('input.sc-lookup-input-value').fill('sss')
 
         // Então devo ver um Toast informando que houve um erro
         const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
