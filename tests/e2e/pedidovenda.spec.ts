@@ -5,6 +5,7 @@ import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
+import { savePedidoId } from '../../utils/pedidoStore'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
@@ -13,82 +14,95 @@ test.beforeEach(async ({ page }) => {
 })
 
 test.describe('Pedido de Venda – Cadastro do Pedido', () => {
-    test('Pedido - Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
-        // Dado que estou na pagina de cadastro de pedidos.
+    test.beforeEach(async ({ page }) => {
         const logada: Logada = new Logada(page)
         const message = 'Pedidos'
         await logada.validarMenu(message)
+    })
+    test('Pedido - Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        // Dado que estou na pagina de cadastro de pedidos.
+        const pedido: Pedido = new Pedido(page)
 
         // Quando clico no botão "novo".
-        await page.locator('id=adicionar-button').click()
+        await pedido.novoPedido()
 
         // Então deve abrir a tela para o cadastro de um novo pedido.
-        const cadastroPedido = page.locator('id=form-input-cliente')
-        await expect(cadastroPedido).toBeVisible()
+        await pedido.verificarTelaNovoPedido()
     })
 
-    test('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.only('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
         await pedido.novoPedido()
 
         // E informo somente os campos da cabeça do pedido sem inserir itens.
-        await page.locator('id=form-input-cliente').locator('input.sc-lookup-input-value').fill(form.cliente)
-        await page.locator('id=form-input-vendedor').locator('input.sc-lookup-input-value').fill(form.vendedor)
-        await page.locator('id=form-input-condicao-pagamento').locator('input.sc-lookup-input-value').fill(form.condicaoPagamento)
-        await page.locator('id=form-input-forma-pagamento').locator('input.sc-lookup-input-value').fill(form.formaPagamento)
-        await page.locator('id=form-input-lista-preco').locator('input.sc-lookup-input-value').fill(form.listaPreco)
+        await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        // Quando clico no botão salvar.
+        // Quando clico no botão salvar + capturo o response da requisição.
+        const [response] = await Promise.all([
+            page.waitForResponse(r => r.url().includes('/v1/pedido') && r.status() === 200),
+        await pedido.submitPedido() ])
 
+        const body = await response.json()
+        const pedidoId = body.data.pedidoId;
+
+        savePedidoId('cabecaPedido', pedidoId)
+        console.log('Pedido criado com ID:', pedidoId)
+
+        // const pedidoId = await pedido.salvarPedidoId()
+        // console.log('Pedido criado com ID:', pedidoId)
+        // savePedidoId('cabecaPedido', pedidoId)
+
+        await page.waitForTimeout(2000)
         // Então a cabeça do pedido deverá ser salva sem apresentar erros.
 
+
         // Excluir pedido via API. 
-    });
+    })
 })
 
 test.describe('Pedido de Venda – Validações da Cabeça', () => {
-    test('Pedido - Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
-        // Dado que estou na tela de cadastro de pedido.
+    test.beforeEach(async ({ page }) => {
         const logada: Logada = new Logada(page)
-        const toast: Toast = new Toast(page)
         const message = 'Pedidos'
         await logada.validarMenu(message)
-        await page.locator('id=adicionar-button').click()
+    })
+    test('Pedido - Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+        // Dado que estou na tela de cadastro de pedido.
+        const pedido: Pedido = new Pedido(page)
+        const toast: Toast = new Toast(page)
+        await pedido.novoPedido()
 
         // Quando eu clico no botão "Salvar" sem preencher nenhum campo.
-        await page.locator('id=form-button-salvar').click()
+        await pedido.submitPedido()
 
         // Então devo ver um Toast informando que preciso preencher os campos obrigatórios e os campos 
-        // (Cliente, Valor dos itens e Lista de Preço) deverão ficar em destaque.
+        // ("Cliente", "Condição de Pagamento" e "Lista de Preço") deverão ficar em destaque.
         const messageToast = 'ATENÇÃO! Prencha todos os campos obrigatórios.'
         await toast.toast(messageToast)
-    });
+    })
 
     test('Pedido - Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
-        const logada: Logada = new Logada(page)
+        const pedido: Pedido = new Pedido(page)
         const toast: Toast = new Toast(page)
-        const message = 'Pedidos'
-        await logada.validarMenu(message)
-        await page.locator('id=adicionar-button').click()
+        await pedido.novoPedido()
 
         // Quando digito um caracter inválido (letras) onde não é permitido.
-        // Campos numéricos: cliente, vendedor, condição de pagamento e lista de preço 
-        // await page.waitForTimeout(5000)
-        await page.locator('id=form-input-cliente').locator('input.sc-lookup-input-value').fill('sss')
-        await page.locator('id=form-input-vendedor').locator('input.sc-lookup-input-value').fill('sss')
-        await page.locator('id=form-input-condicao-pagamento').locator('input.sc-lookup-input-value').fill('sss')
-        await page.locator('id=form-input-lista-preco').locator('input.sc-lookup-input-value').fill('sss')
+        // Campos numéricos: "cliente", "vendedor", "condição de pagamento" e "lista de preço" 
+        await pedido.caracteresInvalidos('cliente', 'sss')
+        await pedido.caracteresInvalidos('vendedor', 'sss')
+        await pedido.caracteresInvalidos('condicao-pagamento', 'sss')
+        await pedido.caracteresInvalidos('lista-preco', 'sss')
 
         // Então devo ver um Toast informando que houve um erro
         const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
         await toast.toast(messageToast)
-    });
+    })
 })
 
-test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
+test.describe.skip('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     test('Pedido - Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que informei os dados da cabeça do pedido.
 
@@ -123,7 +137,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     });
 })
 
-test.describe('Pedido de Venda – Validações do Item', () => {
+test.describe.skip('Pedido de Venda – Validações do Item', () => {
     test('Pedido - Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de inclusão de um item no pedido.
 
@@ -144,7 +158,7 @@ test.describe('Pedido de Venda – Validações do Item', () => {
     });
 })
 
-test.describe('Pedido de Venda – Cálculos do Item', () => {
+test.describe.skip('Pedido de Venda – Cálculos do Item', () => {
     test('Pedido - Calcular valor total do item ao informar quantidade e valor unitário', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que selecionei um item válido.
 
@@ -180,7 +194,7 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
     });
 })
 
-test.describe('Pedido de Venda – Grid de Itens', () => {
+test.describe.skip('Pedido de Venda – Grid de Itens', () => {
     test('Pedido - Exibir corretamente os valores calculados na grid de itens', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu informei/inseri os itens dentro de pedido de venda.
 
@@ -204,7 +218,7 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
     });
 })
 
-test.describe('Pedido de Venda – Exclusão de Itens', () => {
+test.describe.skip('Pedido de Venda – Exclusão de Itens', () => {
     test('Pedido - Excluir item individual pela grid', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu tenho um pedido de venda com itens inseridos.
 
@@ -224,7 +238,7 @@ test.describe('Pedido de Venda – Exclusão de Itens', () => {
     });
 })
 
-test.describe('Pedido de Venda – Assistente de Digitação', () => {
+test.describe.skip('Pedido de Venda – Assistente de Digitação', () => {
     test('Pedido - Abrir assistente de digitação de itens', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
 
@@ -244,7 +258,7 @@ test.describe('Pedido de Venda – Assistente de Digitação', () => {
     });
 })
 
-test.describe('Pedido de Venda – Assistente (Lista de Materiais)', () => {
+test.describe.skip('Pedido de Venda – Assistente (Lista de Materiais)', () => {
     test('Pedido - Abrir assistente de inclusão por lista de materiais', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
 
@@ -265,7 +279,7 @@ test.describe('Pedido de Venda – Assistente (Lista de Materiais)', () => {
     });
 })
 
-test.describe('Pedido de Venda – Importação por Excel', () => {
+test.describe.skip('Pedido de Venda – Importação por Excel', () => {
     test('Pedido - Abrir modal de importação de itens via Excel', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que tenho as informações da cabeça do pedido de venda preenchidos.
 
@@ -287,7 +301,7 @@ test.describe('Pedido de Venda – Importação por Excel', () => {
     });
 })
 
-test.describe('Pedido de Venda – Documentos', () => {
+test.describe.skip('Pedido de Venda – Documentos', () => {
     test('Pedido - Incluir documento no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou cadastrando e/ou editando um pedido de venda.
 

@@ -1,0 +1,11 @@
+{
+  "cabecaPedido": {
+    "pedidoId": 0
+  },
+  "pedidoComItens": {
+    "pedidoId": null
+  },
+  "pedidoComDesconto": {
+    "pedidoId": null
+  }
+}
