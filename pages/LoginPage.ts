@@ -8,6 +8,7 @@ export class Login {
     readonly inputUsuario : Locator
     readonly inputSenha : Locator
     readonly selecFilial : Locator
+    readonly loginH1 : Locator
     readonly btnEntrar : Locator
 
     constructor(page: Page) {
@@ -16,6 +17,7 @@ export class Login {
         this.inputUsuario = page.locator('id=login-input-usuario')
         this.inputSenha = page.locator('id=login-input-senha')
         this.selecFilial = page.locator('id=login-select-filial')
+        this.loginH1 = page.locator('span.login100-form-title')
         this.btnEntrar = page.locator('id=login-button-entrar')
     }
 
