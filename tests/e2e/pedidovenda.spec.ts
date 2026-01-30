@@ -9,7 +9,7 @@ import { savePedidoId } from '../../utils/pedidoStore'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
-    await login.login_user(ENV.USER, ENV.PASSWORD, 1)
+    await login.login(ENV.USER, ENV.PASSWORD,1)
     await page.locator('id=sidebar-pedidos-venda').click()
 })
 
@@ -50,11 +50,12 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         savePedidoId('cabecaPedido', pedidoId)
         console.log('Pedido criado com ID:', pedidoId)
 
+        await page.waitForTimeout(1000)
+
         // const pedidoId = await pedido.salvarPedidoId()
         // console.log('Pedido criado com ID:', pedidoId)
         // savePedidoId('cabecaPedido', pedidoId)
 
-        await page.waitForTimeout(2000)
         // Então a cabeça do pedido deverá ser salva sem apresentar erros.
 
 

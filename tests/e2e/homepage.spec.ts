@@ -5,7 +5,7 @@ import { Logada } from '../../pages/HomePage'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
-    await login.login_user(ENV.USER, ENV.PASSWORD, 1)
+    await login.login(ENV.USER, ENV.PASSWORD,1)
 })
 
 test('Menu superior direito - area logada.', async ({ page }) => {

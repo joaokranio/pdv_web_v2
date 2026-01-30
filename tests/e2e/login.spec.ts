@@ -14,11 +14,10 @@ test('Deve permitir login com credenciais válidas', async ({ page }) => {
     //Dado que preencho os campos com usuário se senha válido
     const login: Login = new Login(page)
     const logada: Logada = new Logada(page)
-    await login.user(ENV.USER)
-    await login.pass(ENV.PASSWORD)
+    await login.login(ENV.USER, ENV.PASSWORD,1)
 
     // E selecionei a filial
-    await login.filial(1)
+    await login.preencherFilial(1)
 
     //Quando clico no botão "Entrar"
     await login.submmit()
@@ -32,10 +31,10 @@ test('Não deve permitir login com usuário inválido', async ({ page }) => {
     const message = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
     const login: Login = new Login(page)
     const toast: Toast = new Toast(page)
-    await login.user('SSSSSS')
+    await login.preencherUsuario('SSSSSS')
 
     // Quando tento digitar o campo senha.
-    await page.locator('id=login-input-senha').click()
+    await login.submmit()
 
     // Então o sistema exibe uma mensagem de erro.
     await toast.toast(message)
@@ -47,11 +46,11 @@ test('Deve exibir toast ao falhar login', async ({ page }) => {
     const toast: Toast = new Toast(page)
     const message1 = 'ATENÇÃO! Credenciais inválidas.Verifique se digitou corretamente.'
     const message2 = 'Action not performed'
-    await login.user(ENV.USER)
-    await login.pass('SSSSS')
+    await login.preencherUsuario(ENV.USER)
+    await login.preencherSenha('SSSSS')
 
     // E selecionei a filial
-    await login.filial(1)
+    await login.preencherFilial(1)
 
     //Quando clico no botão "Entrar"
     await login.submmit()
