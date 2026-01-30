@@ -19,18 +19,20 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         const message = 'Pedidos'
         await logada.validarMenu(message)
     })
-    test('Pedido - Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na pagina de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
 
         // Quando clico no botão "novo".
         await pedido.novoPedido()
 
+        await page.waitForTimeout(1000)
+
         // Então deve abrir a tela para o cadastro de um novo pedido.
         await pedido.verificarTelaNovoPedido()
     })
 
-    test('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
@@ -69,7 +71,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         const message = 'Pedidos'
         await logada.validarMenu(message)
     })
-    test('Pedido - Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test('Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
         const pedido: Pedido = new Pedido(page)
         const toast: Toast = new Toast(page)
@@ -84,7 +86,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         await toast.toast(messageToast)
     })
 
-    test('Pedido - Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test('Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
         const pedido: Pedido = new Pedido(page)
         const toast: Toast = new Toast(page)

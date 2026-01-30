@@ -11,6 +11,7 @@ export class Pedido {
     readonly inputCondicaoPagamento : Locator
     readonly inputFormaPagamento : Locator
     readonly inputListaPreco : Locator
+    readonly input : Locator
     readonly btnSalvar : Locator
 
     constructor(page: Page) {
@@ -22,6 +23,7 @@ export class Pedido {
         this.inputCondicaoPagamento = page.locator('id=form-input-condicao-pagamento')
         this.inputFormaPagamento = page.locator('id=form-input-forma-pagamento')
         this.inputListaPreco = page.locator('id=form-input-lista-preco')
+        this.input = page.locator('input.sc-lookup-input-value')
         this.btnSalvar = page.locator('id=form-button-salvar')
     }
 
