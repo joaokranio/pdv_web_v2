@@ -30,7 +30,7 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.verificarTelaNovoPedido()
     })
 
-    test.only('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Pedido - Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
