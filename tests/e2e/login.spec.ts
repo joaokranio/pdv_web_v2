@@ -3,7 +3,6 @@ import { Login } from '../../pages/LoginPage'
 import { Logada } from '../../pages/HomePage'
 import { ENV } from '../../utils/env'
 import { Toast } from '../../components/Toast'
-// import { Logada } from './support/actions/arealogada'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)

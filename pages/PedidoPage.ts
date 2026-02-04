@@ -12,6 +12,7 @@ export class Pedido {
     readonly inputFormaPagamento : Locator
     readonly inputListaPreco : Locator
     readonly input : Locator
+    readonly pesquisaIcon : Locator
     readonly btnSalvar : Locator
 
     constructor(page: Page) {
@@ -24,6 +25,7 @@ export class Pedido {
         this.inputFormaPagamento = page.locator('id=form-input-forma-pagamento')
         this.inputListaPreco = page.locator('id=form-input-lista-preco')
         this.input = page.locator('input.sc-lookup-input-value')
+        this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
     }
 
@@ -50,6 +52,8 @@ export class Pedido {
 
     async submitPedido() {
         await this.btnSalvar.click()
+    }
+    async pesquisarPedido(pedidoId: number) {
     }
 
     async salvarPedidoId(): Promise<number> {
