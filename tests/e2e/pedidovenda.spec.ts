@@ -32,7 +32,7 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.verificarTelaNovoPedido()
     })
 
-    test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.only('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
@@ -51,15 +51,18 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
         savePedidoId('cabecaPedido', pedidoId)
         console.log('Pedido criado com ID:', pedidoId)
+        
+        // await page.waitForTimeout(200)
+        await expect(page.locator('#search-button')).toBeVisible()
+        // await page.waitForTimeout(1000)
+        
+        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
+        await page.locator('id=search-input').fill(pedidoId.toString())
+        await page.locator('#search-button').click()
+        const linha = page.locator('table tbody tr')
+        await expect(linha).toContainText(pedidoId.toString())
 
         await page.waitForTimeout(1000)
-
-        // const pedidoId = await pedido.salvarPedidoId()
-        // console.log('Pedido criado com ID:', pedidoId)
-        // savePedidoId('cabecaPedido', pedidoId)
-
-        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
-
 
         // Excluir pedido via API. 
     })
