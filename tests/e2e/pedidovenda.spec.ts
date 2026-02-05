@@ -32,59 +32,54 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.verificarTelaNovoPedido()
     })
 
-    test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
-        // Dado que estou na tela de cadastro de pedidos.
+    test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web', '@flaky'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
+
         await pedido.novoPedido()
+        await pedido.preencherCabecaPedido(form.cliente,form.vendedor,form.condicaoPagamento,form.formaPagamento,form.listaPreco)
 
-        // E informo somente os campos da cabeça do pedido sem inserir itens.
-        await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
+        const [response] = await Promise.all([
+            page.waitForResponse(async r => {
+                if (
+                    !r.url().includes('/v1/pedido') ||
+                    r.request().method() !== 'POST' ||
+                    r.status() !== 200
+                ) return false
 
-        // Quando clico no botão salvar + capturo o response da requisição.
-        const responsePromise = page.waitForResponse(r =>
-            r.url().includes('/v1/pedido') &&
-            r.status() === 200 &&
-            r.request().method() === 'POST',
-            { timeout: 30000 }
-        )
-        await pedido.submitPedido()
-        const response = await responsePromise
+                const body = await r.json().catch(() => null)
+                return Boolean(body?.data?.pedidoId)
+            }),
+            pedido.submitPedido()
+        ])
 
         const body = await response.json()
         const pedidoId = body.data.pedidoId
 
-        expect(pedidoId).toBeDefined()
+        expect(pedidoId).toBeTruthy()
         savePedidoId('cabecaPedido', pedidoId)
         console.log('Pedido criado com ID:', pedidoId)
 
-        // await page.waitForTimeout(1000)
+        const textoTitulo = page.locator('#titulo strong i').first()
+        await expect(textoTitulo).toBeVisible({ timeout: 50000 })
 
-        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
-        const textoTitulo = page.locator('#titulo').locator('strong i').nth(0)
-        // await expect(textoTitulo).toHaveText('  Cadastro de Pedidos ')
-        await expect(textoTitulo).toBeVisible({timeout: 50000}) 
-
-        //4.
-        //limpa o campo antes de pesquisar
         await page.locator('#search-select').selectOption('pedidoId')
-        const searchInput = page.locator('id=search-input')
+        const searchInput = page.locator('#search-input')
         await searchInput.fill(pedidoId.toString())
 
-        // pressionar Enter para iniciar a pesquisa
         await Promise.all([
-            page.waitForResponse(r => r.url().includes(`/v1/pedido`) && r.status() === 200), // Espera o GET da busca
+            page.waitForResponse(r =>
+                r.url().includes('/v1/pedido') &&
+                r.request().method() === 'GET' &&
+                r.status() === 200
+            ),
             page.locator('#search-button').click()
         ])
 
-        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
         const linha = page.locator('table tbody tr')
-        await page.waitForTimeout(1000)
-        await expect(linha).toBeVisible({timeout: 50000})
-        await expect(linha).toContainText(pedidoId.toString())
-
-
-        // Excluir pedido via API. 
+        await expect(linha).toHaveCount(1, { timeout: 50000 })
+        await expect(linha.first()).toContainText(pedidoId.toString(), { timeout: 50000 })
+        
     })
 })
 
