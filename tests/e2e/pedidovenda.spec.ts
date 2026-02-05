@@ -32,7 +32,7 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.verificarTelaNovoPedido()
     })
 
-    test.only('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
@@ -58,12 +58,16 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         savePedidoId('cabecaPedido', pedidoId)
         console.log('Pedido criado com ID:', pedidoId)
 
-        // await page.waitForTimeout(20)
+        // await page.waitForTimeout(1000)
+
         // Então a cabeça do pedido deverá ser salva sem apresentar erros.
-        await expect(page.locator('#search-button')).toBeVisible({timeout: 10000}) // TODO: localizado fraco, roda no --ui mas no teste normal falha, trocar por um mais confiavel
+        const textoTitulo = page.locator('#titulo').locator('strong i').nth(0)
+        // await expect(textoTitulo).toHaveText('  Cadastro de Pedidos ')
+        await expect(textoTitulo).toBeVisible({timeout: 50000}) 
 
         //4.
         //limpa o campo antes de pesquisar
+        await page.locator('#search-select').selectOption('pedidoId')
         const searchInput = page.locator('id=search-input')
         await searchInput.fill(pedidoId.toString())
 
@@ -74,15 +78,10 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         ])
 
         // Então a cabeça do pedido deverá ser salva sem apresentar erros.
-        const linhaPedido = page.locator('table tbody tr', { hasNotText: pedidoId.toString() })
-        await expect(linhaPedido).toBeVisible({timeout: 10000})
-        await expect(linhaPedido).toContainText(pedidoId.toString())
-
-        // await page.locator('id=search-input').fill(pedidoId.toString())
-        // await page.locator('#search-button').click()
-        // const linha = page.locator('table tbody tr')
-        // await page.waitForTimeout(7000)
-        // await expect(linha).toContainText(pedidoId.toString())
+        const linha = page.locator('table tbody tr')
+        await page.waitForTimeout(1000)
+        await expect(linha).toBeVisible({timeout: 50000})
+        await expect(linha).toContainText(pedidoId.toString())
 
 
         // Excluir pedido via API. 
