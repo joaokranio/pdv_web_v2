@@ -9,7 +9,7 @@ import { savePedidoId } from '../../utils/pedidoStore'
 
 test.beforeEach(async ({ page }) => {
     const login: Login = new Login(page)
-    await login.login(ENV.USER, ENV.PASSWORD,1)
+    await login.login(ENV.USER, ENV.PASSWORD, 1)
     await page.locator('id=sidebar-pedidos-venda').click()
 })
 
@@ -42,27 +42,48 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
         // Quando clico no botão salvar + capturo o response da requisição.
-        const [response] = await Promise.all([
-            page.waitForResponse(r => r.url().includes('/v1/pedido') && r.status() === 200),
-        await pedido.submitPedido() ])
+        const responsePromise = page.waitForResponse(r =>
+            r.url().includes('/v1/pedido') &&
+            r.status() === 200 &&
+            r.request().method() === 'POST',
+            { timeout: 30000 }
+        )
+        await pedido.submitPedido()
+        const response = await responsePromise
 
         const body = await response.json()
-        const pedidoId = body.data.pedidoId;
+        const pedidoId = body.data.pedidoId
 
+        expect(pedidoId).toBeDefined()
         savePedidoId('cabecaPedido', pedidoId)
         console.log('Pedido criado com ID:', pedidoId)
-        
-        // await page.waitForTimeout(200)
-        await expect(page.locator('#search-button')).toBeVisible()
-        // await page.waitForTimeout(1000)
-        
-        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
-        await page.locator('id=search-input').fill(pedidoId.toString())
-        await page.locator('#search-button').click()
-        const linha = page.locator('table tbody tr')
-        await expect(linha).toContainText(pedidoId.toString())
 
-        await page.waitForTimeout(1000)
+        // await page.waitForTimeout(20)
+        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
+        await expect(page.locator('#search-button')).toBeVisible({timeout: 10000}) // TODO: localizado fraco, roda no --ui mas no teste normal falha, trocar por um mais confiavel
+
+        //4.
+        //limpa o campo antes de pesquisar
+        const searchInput = page.locator('id=search-input')
+        await searchInput.fill(pedidoId.toString())
+
+        // pressionar Enter para iniciar a pesquisa
+        await Promise.all([
+            page.waitForResponse(r => r.url().includes(`/v1/pedido`) && r.status() === 200), // Espera o GET da busca
+            page.locator('#search-button').click()
+        ])
+
+        // Então a cabeça do pedido deverá ser salva sem apresentar erros.
+        const linhaPedido = page.locator('table tbody tr', { hasNotText: pedidoId.toString() })
+        await expect(linhaPedido).toBeVisible({timeout: 10000})
+        await expect(linhaPedido).toContainText(pedidoId.toString())
+
+        // await page.locator('id=search-input').fill(pedidoId.toString())
+        // await page.locator('#search-button').click()
+        // const linha = page.locator('table tbody tr')
+        // await page.waitForTimeout(7000)
+        // await expect(linha).toContainText(pedidoId.toString())
+
 
         // Excluir pedido via API. 
     })
