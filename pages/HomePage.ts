@@ -34,6 +34,10 @@ export class Logada {
         this.home = page.locator('id=sidebar-home')
     }
 
+    async areaLogada () {
+        await this.page.goto('/pagina-inicial')
+    }
+
     async logado() {
         await expect(this.menuSuperior).toBeVisible()
     }

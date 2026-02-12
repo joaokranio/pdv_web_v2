@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import * as dotenv from 'dotenv'
 
 /**
  * Read environment variables from file.
@@ -13,6 +12,7 @@ import * as dotenv from 'dotenv'
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  globalSetup: require.resolve('./setup/global-setup.ts'),
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -27,7 +27,8 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: process.env.BASE_URL,
+    // baseURL: 'http://www.sectrasistemas.com.br:5000',
+    // storageState: 'auth.json',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -36,12 +37,31 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
+      name: 'unauth',
+      testDir: './tests/unauth',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://www.sectrasistemas.com.br:5000',
+        storageState: undefined,
+        video: 'retain-on-failure'
+      }
+    },
+
+    {
+      name: 'auth',
+      testDir: './tests/auth',
       use: { 
         ...devices['Desktop Chrome'],
-        video: 'retain-on-failure',
-       },
+        baseURL: 'http://www.sectrasistemas.com.br:5000',
+        storageState: 'auth.json',
+        video: 'retain-on-failure' },
     },
+    // {
+    //   name: 'chromium',
+    //   use: { ...devices['Desktop Chrome'],
+    //     video: 'retain-on-failure',
+    //     },
+    // },
 
     // {
     //   name: 'firefox',

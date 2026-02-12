@@ -1,19 +1,19 @@
-import { Page, expect, APIRequestContext,Locator } from "@playwright/test"
+import { Page, expect, APIRequestContext, Locator } from "@playwright/test"
 
 
 export class Pedido {
     readonly page: Page
 
     //Locators
-    readonly addPedido : Locator
-    readonly inputCliente : Locator
-    readonly inputVendedor : Locator
-    readonly inputCondicaoPagamento : Locator
-    readonly inputFormaPagamento : Locator
-    readonly inputListaPreco : Locator
-    readonly input : Locator
-    readonly pesquisaIcon : Locator
-    readonly btnSalvar : Locator
+    readonly addPedido: Locator
+    readonly inputCliente: Locator
+    readonly inputVendedor: Locator
+    readonly inputCondicaoPagamento: Locator
+    readonly inputFormaPagamento: Locator
+    readonly inputListaPreco: Locator
+    readonly input: Locator
+    readonly pesquisaIcon: Locator
+    readonly btnSalvar: Locator
 
     constructor(page: Page) {
         this.page = page
@@ -27,6 +27,10 @@ export class Pedido {
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
+    }
+
+    async pedidos() {
+        await this.page.goto('/pedidos')
     }
 
     async novoPedido() {
@@ -50,6 +54,10 @@ export class Pedido {
         await this.inputListaPreco.locator('input.sc-lookup-input-value').fill(listaPreco)
     }
 
+    async validarCamposPreenchidos() {
+        // await expect(this.inputCliente.locator).toBeVisible()
+    }
+
     async submitPedido() {
         await this.btnSalvar.click()
     }
@@ -68,8 +76,22 @@ export class Pedido {
 
     async deletePedido(api: APIRequestContext, pedidoId: number) {
         const response = await api.delete(`/v1/pedido/${pedidoId}`)
-        expect(response.ok()).toBeTruthy()
+        expect(response.status()).toBe(200)
         return response
     }
+
+    async deletePedidoInterno(api: APIRequestContext, pedidoId: number) {
+  const response = await api.delete(
+    `http://192.168.193.202:5001/v1/pedido/${pedidoId}`
+  )
+
+  console.log('Status:', response.status())
+  console.log('Body:', await response.text())
+
+  expect([200, 202, 204]).toContain(response.status())
+
+  return response
+}
+
 
 }

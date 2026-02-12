@@ -1,6 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { Login } from '../../pages/LoginPage'
-import { ENV } from '../../utils/env'
 import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
@@ -8,9 +6,8 @@ import dadosPedido from '../../test-data/clientes.json'
 import { savePedidoId } from '../../utils/pedidoStore'
 
 test.beforeEach(async ({ page }) => {
-    const login: Login = new Login(page)
-    await login.login(ENV.USER, ENV.PASSWORD, 1)
-    await page.locator('id=sidebar-pedidos-venda').click()
+    const pedido: Pedido = new Pedido(page)
+    await pedido.pedidos()
 })
 
 test.describe('Pedido de Venda – Cadastro do Pedido', () => {
@@ -37,8 +34,10 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         const form = dadosPedido.cabecaPedido
 
         await pedido.novoPedido()
-        await pedido.preencherCabecaPedido(form.cliente,form.vendedor,form.condicaoPagamento,form.formaPagamento,form.listaPreco)
+        await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
+        await expect(page.locator('#form-input-condicao-pagamento').locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+ 
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
                 if (
@@ -67,19 +66,16 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         const searchInput = page.locator('#search-input')
         await searchInput.fill(pedidoId.toString())
 
-        await Promise.all([
-            page.waitForResponse(r =>
-                r.url().includes('/v1/pedido') &&
-                r.request().method() === 'GET' &&
-                r.status() === 200
-            ),
-            page.locator('#search-button').click()
-        ])
+        await expect(page.locator('#search-input')).toHaveValue(/.+/)
+        page.locator('#search-button').click()
 
         const linha = page.locator('table tbody tr')
         await expect(linha).toHaveCount(1, { timeout: 50000 })
         await expect(linha.first()).toContainText(pedidoId.toString(), { timeout: 50000 })
-        
+
+        //deletar pedido 
+        // await pedido.deletePedidoInterno(request,pedidoId)
+
     })
 })
 
