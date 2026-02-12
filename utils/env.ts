@@ -14,4 +14,5 @@ export const ENV = {
   USER: getEnv('USER_ADMIN'),
   PASSWORD: getEnv('PASSWORD_ADMIN'),
   PAGE_URL: getEnv('BASE_URL'),
+  PAGE_API: getEnv('API_URL'),
 }

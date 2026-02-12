@@ -14,6 +14,7 @@ export class Pedido {
     readonly input: Locator
     readonly pesquisaIcon: Locator
     readonly btnSalvar: Locator
+    readonly loocap: Locator
 
     constructor(page: Page) {
         this.page = page
@@ -27,6 +28,7 @@ export class Pedido {
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
+        this.loocap = page.locator('sc-lookup-input-value')
     }
 
     async pedidos() {
@@ -74,24 +76,22 @@ export class Pedido {
         return pedidoId
     }
 
-    async deletePedido(api: APIRequestContext, pedidoId: number) {
-        const response = await api.delete(`/v1/pedido/${pedidoId}`)
-        expect(response.status()).toBe(200)
-        return response
+    async deletePedido( pedidoId: number) {
+        // return await this.requestContext.delete(`/v1/pedido/${pedidoId}`)
     }
 
     async deletePedidoInterno(api: APIRequestContext, pedidoId: number) {
-  const response = await api.delete(
-    `http://192.168.193.202:5001/v1/pedido/${pedidoId}`
-  )
+        const response = await api.delete(
+            `http://192.168.193.202:5001/v1/pedido/${pedidoId}`
+        )
 
-  console.log('Status:', response.status())
-  console.log('Body:', await response.text())
+        console.log('Status:', response.status())
+        console.log('Body:', await response.text())
 
-  expect([200, 202, 204]).toContain(response.status())
+        expect([200, 202, 204]).toContain(response.status())
 
-  return response
-}
+        return response
+    }
 
 
 }

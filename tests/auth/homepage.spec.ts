@@ -38,7 +38,7 @@ test.describe('Retorno para a pagina inicial ', () => {
     test.beforeEach(async ({ page }) => {
         const logada: Logada = new Logada(page)
         await logada.logado()
-        await logada.clientes.click()
+        await logada.indicadores.click()
     })
     test('Menu Pagina Inicial', async ({ page }) => {
         // Dado que estou logado no sistema.

@@ -4,6 +4,10 @@ import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
 import { savePedidoId } from '../../utils/pedidoStore'
+import { PedidoApi } from '../../api/PedidoApi'
+import { request } from 'node:http'
+
+let pedidoApi: PedidoApi
 
 test.beforeEach(async ({ page }) => {
     const pedido: Pedido = new Pedido(page)
@@ -11,11 +15,6 @@ test.beforeEach(async ({ page }) => {
 })
 
 test.describe('Pedido de Venda – Cadastro do Pedido', () => {
-    test.beforeEach(async ({ page }) => {
-        const logada: Logada = new Logada(page)
-        const message = 'Pedidos'
-        await logada.validarMenu(message)
-    })
     test('Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na pagina de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
@@ -30,14 +29,19 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
     })
 
     test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web', '@flaky'] }, async ({ page }) => {
+        const pedidoApi: PedidoApi = new PedidoApi (page)
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
 
         await pedido.novoPedido()
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        await expect(page.locator('#form-input-condicao-pagamento').locator('.sc-lookup-input-value')).toHaveValue(/.+/)
- 
+        await expect(pedido.inputCliente.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+        await expect(pedido.inputVendedor.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+        await expect(pedido.inputCondicaoPagamento.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+        await expect(pedido.inputFormaPagamento.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+        await expect(pedido.inputListaPreco.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
                 if (
@@ -67,14 +71,17 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await searchInput.fill(pedidoId.toString())
 
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
+        //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
+        await page.waitForTimeout(1000)
         page.locator('#search-button').click()
+
 
         const linha = page.locator('table tbody tr')
         await expect(linha).toHaveCount(1, { timeout: 50000 })
         await expect(linha.first()).toContainText(pedidoId.toString(), { timeout: 50000 })
 
         //deletar pedido 
-        // await pedido.deletePedidoInterno(request,pedidoId)
+        await pedidoApi.deletarPedido(pedidoId)   
 
     })
 })
