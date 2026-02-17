@@ -72,7 +72,9 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
         //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
-        await page.waitForTimeout(1000)
+        await page.waitForTimeout(100)
+        page.locator('#search-input').click()
+        await page.waitForTimeout(100)
         page.locator('#search-button').click()
 
 

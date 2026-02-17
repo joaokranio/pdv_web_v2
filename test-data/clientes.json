@@ -8,17 +8,10 @@
         },
     
     "pedidoItem": {
-        "cliente":{
-            "codigo": "1223"
-        },
-        "vendedor": {
-            "codigo":"10"
-        },
-        "condicaoPagamento":{
-            "codigo": ""
-        },
-        "listaPreco":{
-            "codigo":""
-        }
+        "cliente": "25629",
+        "vendedor": "160",
+        "formaPagamento": "BLQ",
+        "condicaoPagamento": "29",
+        "listaPreco":"8"
     }
 }
