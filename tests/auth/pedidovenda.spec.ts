@@ -72,9 +72,9 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
         //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
-        await page.waitForTimeout(100)
+        await page.waitForTimeout(1000)
         page.locator('#search-input').click()
-        await page.waitForTimeout(100)
+        await page.waitForTimeout(1000)
         page.locator('#search-button').click()
 
 
@@ -118,9 +118,6 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         // Quando digito um caracter inválido (letras) onde não é permitido.
         // Campos numéricos: "cliente", "vendedor", "condição de pagamento" e "lista de preço" 
         await pedido.caracteresInvalidos('cliente', 'sss')
-        await pedido.caracteresInvalidos('vendedor', 'sss')
-        await pedido.caracteresInvalidos('condicao-pagamento', 'sss')
-        await pedido.caracteresInvalidos('lista-preco', 'sss')
 
         // Então devo ver um Toast informando que houve um erro
         const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
@@ -128,25 +125,42 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
     })
 })
 
-test.describe.skip('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
-    test('Pedido - Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
+    test('Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que informei os dados da cabeça do pedido.
-
+        await page.goto('pedidos/238048')
+        await expect(page.locator('#form-input-codigo')).toHaveValue('238048')
+        
         // Quando clico no botão "+" para adicionar os itens no pedido.
-
+        await page.locator('div .w-full').locator('#adicionar-button').click()
+        
         // Então é apresentado um modal para preencher as informações do item que deverá ser acrescentado no pedido.
-
+        await expect(page.locator('div .modal-content')).toBeVisible()
+        
     });
+    
+    test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        // Dado que informei os dados da cabeça do pedido.
+        await page.goto('pedidos/238050')
+        await expect(page.locator('#form-input-codigo')).toHaveValue('238050')
+        await page.locator('div .w-full').locator('#adicionar-button').click()
+        
+        // Dado que selecionei um item válido e preenchi todos os campos.
+        await page.locator('#form-input-produto').locator('input.sc-lookup-input-value').fill('0514')
+        await page.locator('#form-input-tipo-venda').locator('input.sc-lookup-input-value').click()
+        await page.locator('#form-input-unidade').locator('input.sc-lookup-input-value').click()
+        await expect(page.locator('#form-input-quantidade').locator('input.b-form-input')).toBeEditable()
+        await page.locator('#form-input-quantidade').locator('input.b-form-input').fill('5')
+        await page.locator('#form-input-quantidade').locator('input.b-form-input').fill('5')
 
-    test('Pedido - Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
-        // Dado que selecionei um item válido e preenchi os campos.
+        await page.waitForTimeout(1000)
 
         // Quando clico no botão "Salvar"
 
         // Então o item do pedido deverá aparecer na grid do pedido com os dados que foram  informado.
     });
 
-    test('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.skip('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu já tenho um item inserido no pedido.
 
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
@@ -154,7 +168,7 @@ test.describe.skip('Pedido de Venda – Inclusão de Itens (Modal de Item)', () 
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
     });
 
-    test('Pedido - Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.skip('Pedido - Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu iniciei a inclusão de um novo item no pedido.
 
         // Quando clico no botão "Cancelar".

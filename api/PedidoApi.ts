@@ -16,11 +16,9 @@ export class PedidoApi {
     const token = await this.page.evaluate(()=>{
       return localStorage.getItem('X_SECTRA_ACCESS_TOKEN')
     })
-
     if (!token) {
       throw new Error('Token não encontrado no localStorage')
     }
-
     return token
   }
 
@@ -37,6 +35,20 @@ export class PedidoApi {
     console.log('Status:', response.status())
     console.log('Body:', await response.status())
 
-    return response;
+    return response
+  }
+
+  async newPedido(): Promise<APIResponse> {
+    const token = await this.getToken()
+
+    const response = await this.request.post(`${this.apiUrl}/v1/pedido/`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('status:', response.status())
+    console.log('Body:', await response.status())
+    return response
   }
 }

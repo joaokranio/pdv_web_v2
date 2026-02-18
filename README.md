@@ -19,22 +19,21 @@ playwright-project/
 │
 ├── playwright.config.ts
 ├── package.json
-├── tsconfig.json
+├── auth.json
 ├── .env
 ├── .env.example
 ├── .gitignore
 │
+├── api/
+│   └── PedidoApi.ts
 ├── tests/
-│   ├── e2e/
-│   │   ├── login.spec.ts
+│   ├── auth/
+│   │   ├── homepage.spec.ts
 │   │   ├── cadastro.spec.ts
-│   │   └── pedido.spec.ts
+│   │   └── pedidovenda.spec.ts
 │   │
-│   ├── api/
-│   │   └── auth.api.spec.ts
-│   │
-│   └── regression/
-│       └── fluxo-completo.spec.ts
+│   └── unauth/
+│       └── login.spec.ts
 │
 ├── pages/
 │   ├── LoginPage.ts
@@ -46,29 +45,13 @@ playwright-project/
 │   ├── Modal.ts
 │   └── Header.ts
 │
-├── fixtures/
-│   └── testFixtures.ts
-│
-├── services/
-│   ├── AuthService.ts
-│   └── UsuarioService.ts
-│
 ├── utils/
 │   ├── env.ts
-│   ├── dataFactory.ts
-│   ├── dateHelper.ts
-│   └── logger.ts
+│   └── pedidoStore.ts
 │
 ├── test-data/
-│   ├── usuarios.json
-│   └── produtos.json
-│
-├── reports/
-│   ├── html/
-│   └── allure/
-│
-├── screenshots/
-├── videos/
+│   ├── Clientes.json
+│   └── pedido.json
 │
 └── README.md
 ```
@@ -120,30 +103,6 @@ Evita duplicação de código e facilita manutenção de elementos globais.
 
 ---
 
-### 🔹 `fixtures/`
-
-Permite estender o objeto `test` do Playwright para:
-
-* Login automático
-* Setup de contexto
-* Injeção de páginas prontas
-
-Facilita o reaproveitamento de código e reduz duplicações em `beforeEach`.
-
----
-
-### 🔹 `services/`
-
-Responsável por regras de negócio e interações com backend/API, como:
-
-* Autenticação via API
-* Criação de massa de dados
-* Setup rápido de cenários
-
-Uso recomendado para tornar os testes **mais rápidos e estáveis**.
-
----
-
 ### 🔹 `utils/`
 
 Funções auxiliares que não pertencem nem aos testes nem às páginas:
@@ -161,8 +120,8 @@ Armazena massas de dados estáticas em JSON, utilizadas em cenários previsívei
 
 Exemplo:
 
-* Usuários válidos
-* Produtos cadastrados
+* Clientes
+* Pedidos
 
 ---
 
