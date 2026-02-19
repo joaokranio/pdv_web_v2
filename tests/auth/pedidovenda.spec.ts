@@ -127,34 +127,36 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
 
 test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     test('Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238048')
-        await expect(page.locator('#form-input-codigo')).toHaveValue('238048')
+        await expect(pedido.inputCodigo).toHaveValue('238048')
 
         // Quando clico no botão "+" para adicionar os itens no pedido.
-        await page.locator('div .w-full').locator('#adicionar-button').click()
+        await pedido.addPedido.click()
 
         // Então é apresentado um modal para preencher as informações do item que deverá ser acrescentado no pedido.
-        await expect(page.locator('div .modal-content')).toBeVisible()
+        await expect(pedido.modalPedidoitem).toBeVisible()
 
     });
 
-    test.only('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
+        const pedido: Pedido = new Pedido(page)
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238050')
-        await expect(page.locator('#form-input-codigo')).toHaveValue('238050')
+        await expect(pedido.inputCodigo).toHaveValue('238050')
         await expect(page.locator('div.w-full td .d-flex')).toHaveText('Nenhum registro encontrado!')
-        await page.locator('div .w-full').locator('#adicionar-button').click()
+        await pedido.addPedido.click()
 
         // Dado que selecionei um item válido e preenchi todos os campos.
-        await expect(page.locator('.modal-footer span')).toHaveText('Valor Total: R$ 0,00')
-        await page.locator('#form-input-produto input.sc-lookup-input-value').fill('0514')
-        await page.locator('#form-input-tipo-venda input.sc-lookup-input-value').click()
-        await page.locator('#form-input-unidade input.sc-lookup-input-value').click()
-        await expect(page.locator('#form-input-quantidade input.b-form-input')).toBeEditable()
-        await page.locator('#form-input-quantidade input.b-form-input').fill('5')
-        await expect(page.locator('.modal-footer span')).not.toHaveText('Valor Total: R$ 0,00')
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 0,00')
+        await pedido.inputProduto.fill('0514')
+        await pedido.inputTipoVenda.click()
+        await pedido.inputUnidade.click()
+        await expect(pedido.inputQuantidade).toBeEditable()
+        await pedido.inputQuantidade.fill('5')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00')
 
 
         // Quando clico no botão "Salvar"
@@ -175,7 +177,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
                 return Boolean(id && id !== 0)
 
             }),
-            page.locator('.modal-footer #form-button-salvar').click()
+            pedido.salvarItem.click()
         ])
 
         // await page.waitForTimeout(5000)
@@ -188,7 +190,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         console.log('Item criado com ID:', pedidoItem)
 
         // Então o item do pedido deverá aparecer na grid do pedido com os dados que foram  informado.
-        await expect(page.locator('#form-input-codigo')).toHaveValue('238050')
+        await expect(pedido.inputCodigo).toHaveValue('238050')
         await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
         // await page.waitForTimeout(1000)
 

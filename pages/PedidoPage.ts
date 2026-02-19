@@ -4,9 +4,10 @@ import { Page, expect, APIRequestContext, Locator } from "@playwright/test"
 export class Pedido {
     readonly page: Page
 
-    //Locators
+    //Locators cabeça pedido
     readonly addPedido: Locator
     readonly inputCliente: Locator
+    readonly inputCodigo: Locator
     readonly inputVendedor: Locator
     readonly inputCondicaoPagamento: Locator
     readonly inputFormaPagamento: Locator
@@ -16,11 +17,23 @@ export class Pedido {
     readonly btnSalvar: Locator
     readonly loocap: Locator
 
+    //locators inclusão item
+    readonly modalPedidoitem: Locator
+    readonly inputProduto: Locator
+    readonly inputTipoVenda: Locator
+    readonly inputUnidade: Locator
+    readonly inputQuantidade: Locator
+    readonly totalItem: Locator
+    readonly salvarItem: Locator
+
+
     constructor(page: Page) {
         this.page = page
 
-        this.addPedido = page.locator('id=adicionar-button')
+        // cabeça pedido 
+        this.addPedido = page.locator('#adicionar-button')
         this.inputCliente = page.locator('id=form-input-cliente')
+        this.inputCodigo = page.locator('#form-input-codigo')
         this.inputVendedor = page.locator('id=form-input-vendedor')
         this.inputCondicaoPagamento = page.locator('id=form-input-condicao-pagamento')
         this.inputFormaPagamento = page.locator('id=form-input-forma-pagamento')
@@ -29,6 +42,17 @@ export class Pedido {
         this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
         this.loocap = page.locator('sc-lookup-input-value')
+
+        // inclusão item
+        this.inputProduto = page.locator('#form-input-produto input.sc-lookup-input-value')
+        this.modalPedidoitem = page.locator('div .modal-content')
+        this.inputTipoVenda = page.locator('#form-input-tipo-venda input.sc-lookup-input-value')
+        this.inputUnidade = page.locator('#form-input-unidade input.sc-lookup-input-value')
+        this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
+        this.totalItem = page.locator('.modal-footer span')
+        this.salvarItem = page.locator('.modal-footer #form-button-salvar')
+        
+
     }
 
     async pedidos() {
