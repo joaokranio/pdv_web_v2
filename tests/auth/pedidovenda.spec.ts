@@ -3,7 +3,7 @@ import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
-import { savePedidoId } from '../../utils/pedidoStore'
+import { saveItemId, savePedidoId } from '../../utils/pedidoStore'
 import { PedidoApi } from '../../api/PedidoApi'
 import { request } from 'node:http'
 
@@ -29,7 +29,7 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
     })
 
     test('Criar pedido preenchendo somente a cabeça', { tag: ['@critical', '@regression', '@pedidos_venda', '@web', '@flaky'] }, async ({ page }) => {
-        const pedidoApi: PedidoApi = new PedidoApi (page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
         const pedido: Pedido = new Pedido(page)
         const form = dadosPedido.cabecaPedido
 
@@ -83,7 +83,7 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await expect(linha.first()).toContainText(pedidoId.toString(), { timeout: 50000 })
 
         //deletar pedido 
-        await pedidoApi.deletarPedido(pedidoId)   
+        await pedidoApi.deletarPedido(pedidoId)
 
     })
 })
@@ -130,34 +130,70 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238048')
         await expect(page.locator('#form-input-codigo')).toHaveValue('238048')
-        
+
         // Quando clico no botão "+" para adicionar os itens no pedido.
         await page.locator('div .w-full').locator('#adicionar-button').click()
-        
+
         // Então é apresentado um modal para preencher as informações do item que deverá ser acrescentado no pedido.
         await expect(page.locator('div .modal-content')).toBeVisible()
-        
+
     });
-    
-    test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+
+    test.only('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedidoApi: PedidoApi = new PedidoApi(page)
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238050')
         await expect(page.locator('#form-input-codigo')).toHaveValue('238050')
+        await expect(page.locator('div.w-full td .d-flex')).toHaveText('Nenhum registro encontrado!')
         await page.locator('div .w-full').locator('#adicionar-button').click()
-        
-        // Dado que selecionei um item válido e preenchi todos os campos.
-        await page.locator('#form-input-produto').locator('input.sc-lookup-input-value').fill('0514')
-        await page.locator('#form-input-tipo-venda').locator('input.sc-lookup-input-value').click()
-        await page.locator('#form-input-unidade').locator('input.sc-lookup-input-value').click()
-        await expect(page.locator('#form-input-quantidade').locator('input.b-form-input')).toBeEditable()
-        await page.locator('#form-input-quantidade').locator('input.b-form-input').fill('5')
-        await page.locator('#form-input-quantidade').locator('input.b-form-input').fill('5')
 
-        await page.waitForTimeout(1000)
+        // Dado que selecionei um item válido e preenchi todos os campos.
+        await expect(page.locator('.modal-footer span')).toHaveText('Valor Total: R$ 0,00')
+        await page.locator('#form-input-produto input.sc-lookup-input-value').fill('0514')
+        await page.locator('#form-input-tipo-venda input.sc-lookup-input-value').click()
+        await page.locator('#form-input-unidade input.sc-lookup-input-value').click()
+        await expect(page.locator('#form-input-quantidade input.b-form-input')).toBeEditable()
+        await page.locator('#form-input-quantidade input.b-form-input').fill('5')
+        await expect(page.locator('.modal-footer span')).not.toHaveText('Valor Total: R$ 0,00')
+
 
         // Quando clico no botão "Salvar"
+        // await page.locator('.modal-footer #form-button-salvar').click()
+
+        //salvar id do item no json
+        const [response] = await Promise.all([
+            page.waitForResponse(async (r) => {
+                if (
+                    !r.url().includes('/v1/pedidoItem') ||
+                    r.request().method() !== 'POST' ||
+                    r.status() !== 200
+
+                ) return false
+                const body = await r.json().catch(() => null)
+                const id = body?.data?.pedidoItemId
+
+                return Boolean(id && id !== 0)
+
+            }),
+            page.locator('.modal-footer #form-button-salvar').click()
+        ])
+
+        // await page.waitForTimeout(5000)
+        const body = await response.json()
+        // console.log('Response body:', body)
+        const pedidoItem = body?.data?.pedidoItemId
+
+        expect(pedidoItem).toBeTruthy()
+        saveItemId('itemPedido', pedidoItem)
+        console.log('Item criado com ID:', pedidoItem)
 
         // Então o item do pedido deverá aparecer na grid do pedido com os dados que foram  informado.
+        await expect(page.locator('#form-input-codigo')).toHaveValue('238050')
+        await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
+        // await page.waitForTimeout(1000)
+
+        //deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItem)
     });
 
     test.skip('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {

@@ -15,7 +15,24 @@ export function savePedidoId(chave: string, pedidoId: number) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
 }
 
+export function saveItemId(chave: string, pedidoItem: number) {
+  let data: any = {}
+
+  if (fs.existsSync(filePath)) {
+    data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+  }
+
+  data[chave] = { pedidoItem }
+
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
+}
+
 export function getPedidoId(chave: string): number {
   const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
   return data[chave].pedidoId
+}
+
+export function getPedidoItem(chave: string): number {
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+  return data[chave].pedidoItem
 }

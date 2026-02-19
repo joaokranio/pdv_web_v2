@@ -22,6 +22,7 @@ export class PedidoApi {
     return token
   }
 
+  //deletar pedido
   async deletarPedido(pedidoId: number): Promise<APIResponse>{
     const token = await this.getToken()
 
@@ -36,6 +37,23 @@ export class PedidoApi {
     console.log('Body:', await response.status())
 
     return response
+  }
+
+  //deletar item do pedido 
+  async deletarItem(itemId: number): Promise<APIResponse>{
+    const token = await this.getToken()
+
+    const response = await this.request.delete(`${this.apiUrl}/v1/pedidoItem/${itemId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('Status:', response.status())
+    console.log('Body:',await response.status())
+
+    return response
+
   }
 
   async newPedido(): Promise<APIResponse> {
