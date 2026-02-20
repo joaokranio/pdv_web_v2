@@ -36,11 +36,11 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.novoPedido()
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        await expect(pedido.inputCliente.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
-        await expect(pedido.inputVendedor.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
-        await expect(pedido.inputCondicaoPagamento.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
-        await expect(pedido.inputFormaPagamento.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
-        await expect(pedido.inputListaPreco.locator('.sc-lookup-input-value')).toHaveValue(/.+/)
+        await expect(pedido.inputCliente).toHaveValue(/.+/)
+        await expect(pedido.inputVendedor).toHaveValue(/.+/)
+        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/)
+        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/)
+        await expect(pedido.inputListaPreco).toHaveValue(/.+/)
 
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
@@ -130,7 +130,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         const pedido: Pedido = new Pedido(page)
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238048')
-        await expect(pedido.inputCodigo).toHaveValue('238048')
+        await expect(pedido.validaPedido).toHaveValue('238048')
 
         // Quando clico no botão "+" para adicionar os itens no pedido.
         await pedido.addPedido.click()
@@ -145,23 +145,21 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         const pedido: Pedido = new Pedido(page)
         // Dado que informei os dados da cabeça do pedido.
         await page.goto('pedidos/238050')
-        await expect(pedido.inputCodigo).toHaveValue('238050')
-        await expect(page.locator('div.w-full td .d-flex')).toHaveText('Nenhum registro encontrado!')
+        await expect(pedido.validaPedido).toHaveValue('238050')
+        await expect(page.locator('td[colspan="12"]')).toBeVisible({ timeout: 10000 })
+        await expect(pedido.gridPedido).toHaveText('Nenhum registro encontrado!')
         await pedido.addPedido.click()
 
         // Dado que selecionei um item válido e preenchi todos os campos.
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 0,00')
         await pedido.inputProduto.fill('0514')
-        await pedido.inputTipoVenda.click()
-        await pedido.inputUnidade.click()
+        await pedido.inputProduto.press('Tab')
         await expect(pedido.inputQuantidade).toBeEditable()
         await pedido.inputQuantidade.fill('5')
         await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00')
 
 
         // Quando clico no botão "Salvar"
-        // await page.locator('.modal-footer #form-button-salvar').click()
-
         //salvar id do item no json
         const [response] = await Promise.all([
             page.waitForResponse(async (r) => {
@@ -180,9 +178,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
             pedido.salvarItem.click()
         ])
 
-        // await page.waitForTimeout(5000)
         const body = await response.json()
-        // console.log('Response body:', body)
         const pedidoItem = body?.data?.pedidoItemId
 
         expect(pedidoItem).toBeTruthy()
@@ -190,8 +186,9 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         console.log('Item criado com ID:', pedidoItem)
 
         // Então o item do pedido deverá aparecer na grid do pedido com os dados que foram  informado.
-        await expect(pedido.inputCodigo).toHaveValue('238050')
-        await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
+        await expect(pedido.validaPedido).toHaveValue('238050')
+        // await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
+        await expect(pedido.gridPedido.filter({ hasText: '0514' })).toBeVisible()
         // await page.waitForTimeout(1000)
 
         //deletar item do pedido via api
@@ -199,20 +196,39 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     });
 
     test.skip('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
         // Dado que eu já tenho um item inserido no pedido.
+        await page.goto('pedidos/238046')
+        await expect(pedido.validaPedido).toHaveValue('238046')
 
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
 
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
-    });
+    })
 
-    test.skip('Pedido - Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Pedido - Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
         // Dado que eu iniciei a inclusão de um novo item no pedido.
+        await page.goto('pedidos/238045')
+        await expect(pedido.validaPedido).toHaveValue('238045')
+        await pedido.addPedido.click()
+
+        // E informo os dados do item
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 0,00')
+        await pedido.inputProduto.fill('0514')
+        await pedido.inputProduto.press('Tab')
+        await expect(pedido.inputQuantidade).toBeEditable()
+        await pedido.inputQuantidade.fill('5')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00')
 
         // Quando clico no botão "Cancelar".
+        await pedido.cancelarItem.click()
 
         // Então o modal deverá fechar e voltar para tela de pedidos sem que tenha incluido nenhum item.
-    });
+        await expect(pedido.validaPedido).toHaveValue('238045')
+        await expect(page.locator('td[colspan="12"]')).toBeVisible({ timeout: 10000 })
+        await expect(pedido.gridPedido).toHaveText('Nenhum registro encontrado!')
+    })
 })
 
 test.describe.skip('Pedido de Venda – Validações do Item', () => {

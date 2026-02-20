@@ -3,10 +3,13 @@ import { Page, expect, APIRequestContext, Locator } from "@playwright/test"
 
 export class Pedido {
     readonly page: Page
-
-    //Locators cabeça pedido
+    
+    // Locators Genéricos
     readonly addPedido: Locator
+
+    // Locators cabeça pedido
     readonly inputCliente: Locator
+    readonly validaPedido: Locator
     readonly inputCodigo: Locator
     readonly inputVendedor: Locator
     readonly inputCondicaoPagamento: Locator
@@ -17,40 +20,47 @@ export class Pedido {
     readonly btnSalvar: Locator
     readonly loocap: Locator
 
-    //locators inclusão item
+    // Locators inclusão item
     readonly modalPedidoitem: Locator
+    readonly gridPedido: Locator
     readonly inputProduto: Locator
     readonly inputTipoVenda: Locator
     readonly inputUnidade: Locator
     readonly inputQuantidade: Locator
     readonly totalItem: Locator
     readonly salvarItem: Locator
+    readonly cancelarItem: Locator
 
 
     constructor(page: Page) {
         this.page = page
 
-        // cabeça pedido 
-        this.addPedido = page.locator('#adicionar-button')
-        this.inputCliente = page.locator('id=form-input-cliente')
-        this.inputCodigo = page.locator('#form-input-codigo')
-        this.inputVendedor = page.locator('id=form-input-vendedor')
-        this.inputCondicaoPagamento = page.locator('id=form-input-condicao-pagamento')
-        this.inputFormaPagamento = page.locator('id=form-input-forma-pagamento')
-        this.inputListaPreco = page.locator('id=form-input-lista-preco')
+        // Genérico
+        this.addPedido = page.locator('#adicionar-button:visible')
+
+        // Cabeça pedido 
+        this.inputCliente = page.locator('#form-input-cliente input.sc-lookup-input-value')
+        this.inputCodigo = page.locator('#form-input-codigo input.sc-lookup-input-value')
+        this.validaPedido = page.locator('#form-input-codigo')
+        this.inputVendedor = page.locator('#form-input-vendedor input.sc-lookup-input-value')
+        this.inputCondicaoPagamento = page.locator('#form-input-condicao-pagamento input.sc-lookup-input-value')
+        this.inputFormaPagamento = page.locator('#form-input-forma-pagamento input.sc-lookup-input-value')
+        this.inputListaPreco = page.locator('#form-input-lista-preco input.sc-lookup-input-value')
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
         this.loocap = page.locator('sc-lookup-input-value')
 
-        // inclusão item
+        // Inclusão item
+        this.gridPedido = page.locator('div.w-full td')
         this.inputProduto = page.locator('#form-input-produto input.sc-lookup-input-value')
         this.modalPedidoitem = page.locator('div .modal-content')
         this.inputTipoVenda = page.locator('#form-input-tipo-venda input.sc-lookup-input-value')
         this.inputUnidade = page.locator('#form-input-unidade input.sc-lookup-input-value')
         this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
         this.totalItem = page.locator('.modal-footer span')
-        this.salvarItem = page.locator('.modal-footer #form-button-salvar')
+        this.salvarItem = page.locator('.modal-footer #form-button-salvar:visible')
+        this.cancelarItem = page.locator('.modal-footer #form-button-cancelar:visible')
         
 
     }
@@ -73,11 +83,11 @@ export class Pedido {
     }
 
     async preencherCabecaPedido(cliente: string, vendedor: string, condicaoPagamento: string, formaPagamento: string, listaPreco: string) {
-        await this.inputCliente.locator('input.sc-lookup-input-value').fill(cliente)
-        await this.inputVendedor.locator('input.sc-lookup-input-value').fill(vendedor)
-        await this.inputCondicaoPagamento.locator('input.sc-lookup-input-value').fill(condicaoPagamento)
-        await this.inputFormaPagamento.locator('input.sc-lookup-input-value').fill(formaPagamento)
-        await this.inputListaPreco.locator('input.sc-lookup-input-value').fill(listaPreco)
+        await this.inputCliente.fill(cliente)
+        await this.inputVendedor.fill(vendedor)
+        await this.inputCondicaoPagamento.fill(condicaoPagamento)
+        await this.inputFormaPagamento.fill(formaPagamento)
+        await this.inputListaPreco.fill(listaPreco)
     }
 
     async validarCamposPreenchidos() {
