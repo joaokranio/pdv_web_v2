@@ -195,13 +195,21 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedidoApi.deletarItem(pedidoItem)
     });
 
-    test.skip('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         // Dado que eu já tenho um item inserido no pedido.
         await page.goto('pedidos/238046')
         await expect(pedido.validaPedido).toHaveValue('238046')
 
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
+        await pedido.editarItem.click()
+        await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 117,36')
+        await pedido.inputQuantidade.fill('')
+        await pedido.inputQuantidade.fill('15')
+        await pedido.inputQuantidade.press('Tab')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 117,36') //TODO: não recalculando o valor total ao alterar a quantidade.
+        await page.waitForTimeout(5000)
 
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
     })

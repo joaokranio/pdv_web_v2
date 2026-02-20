@@ -31,6 +31,8 @@ export class Pedido {
     readonly salvarItem: Locator
     readonly cancelarItem: Locator
 
+    // Editar item
+    readonly editarItem : Locator
 
     constructor(page: Page) {
         this.page = page
@@ -62,6 +64,8 @@ export class Pedido {
         this.salvarItem = page.locator('.modal-footer #form-button-salvar:visible')
         this.cancelarItem = page.locator('.modal-footer #form-button-cancelar:visible')
         
+        // Editar item
+        this.editarItem = page.locator('td.h-100 i.fa-lg.text-success')
 
     }
 
