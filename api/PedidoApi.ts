@@ -1,8 +1,9 @@
 import { Page, APIResponse, expect } from '@playwright/test'
 import { ENV } from '../utils/env'
+import console from 'node:console'
 
 export class PedidoApi {
-  private page: Page 
+  private page: Page
   private request
   private apiUrl: string
 
@@ -12,8 +13,8 @@ export class PedidoApi {
     this.apiUrl = ENV.PAGE_API
   }
 
-  private async getToken(): Promise<string>{
-    const token = await this.page.evaluate(()=>{
+  private async getToken(): Promise<string> {
+    const token = await this.page.evaluate(() => {
       return localStorage.getItem('X_SECTRA_ACCESS_TOKEN')
     })
     if (!token) {
@@ -22,11 +23,41 @@ export class PedidoApi {
     return token
   }
 
-  //deletar pedido
-  async deletarPedido(pedidoId: number): Promise<APIResponse>{
+  //Novo Pedido
+  async newPedido(): Promise<APIResponse> {
     const token = await this.getToken()
 
-    const response = await this.request.delete(`${this.apiUrl}/v1/pedido/${pedidoId}`,{
+    const response = await this.request.post(`${this.apiUrl}/v1/pedido/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('status:', response.status())
+    console.log('Body:', await response.status())
+    return response
+  }
+
+  // Editar Pedido
+  async editPedido(): Promise<APIResponse> {
+    const token = await this.getToken()
+
+    const response = await this.request.put(`${this.apiUrl}/v1/pedido/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('status:', response.status())
+    console.log('Body:', await response.status())
+    return response
+  }
+
+  // Deletar pedido
+  async deletarPedido(pedidoId: number): Promise<APIResponse> {
+    const token = await this.getToken()
+
+    const response = await this.request.delete(`${this.apiUrl}/v1/pedido/${pedidoId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -39,27 +70,11 @@ export class PedidoApi {
     return response
   }
 
-  //deletar item do pedido 
-  async deletarItem(itemId: number): Promise<APIResponse>{
+  // Inserir item no pedido
+  async newPedidoItem(): Promise<APIResponse> {
     const token = await this.getToken()
 
-    const response = await this.request.delete(`${this.apiUrl}/v1/pedidoItem/${itemId}`,{
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'aplication/json'
-      }
-    })
-    console.log('Status:', response.status())
-    console.log('Body:',await response.status())
-
-    return response
-
-  }
-
-  async newPedido(): Promise<APIResponse> {
-    const token = await this.getToken()
-
-    const response = await this.request.post(`${this.apiUrl}/v1/pedido/`,{
+    const response = await this.request.post(`${this.apiUrl}/v1/pedidoItem/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'aplication/json'
@@ -69,4 +84,37 @@ export class PedidoApi {
     console.log('Body:', await response.status())
     return response
   }
+
+  // Editar item no pedido
+  async editPedidoItem(): Promise<APIResponse> {
+    const token = await this.getToken()
+
+    const response = await this.request.put(`${this.apiUrl}/v1/pedidoItem/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('status:', response.status())
+    console.log('Body:', await response.status())
+    return response
+  }
+
+  // Deletar item do pedido 
+  async deletarItem(itemId: number): Promise<APIResponse> {
+    const token = await this.getToken()
+
+    const response = await this.request.delete(`${this.apiUrl}/v1/pedidoItem/${itemId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'aplication/json'
+      }
+    })
+    console.log('Status:', response.status())
+    console.log('Body:', await response.status())
+
+    return response
+  }
+
+
 }

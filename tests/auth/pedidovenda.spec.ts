@@ -22,8 +22,6 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         // Quando clico no botão "novo".
         await pedido.novoPedido()
 
-        await page.waitForTimeout(1000)
-
         // Então deve abrir a tela para o cadastro de um novo pedido.
         await pedido.verificarTelaNovoPedido()
     })
@@ -189,32 +187,38 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await expect(pedido.validaPedido).toHaveValue('238050')
         // await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
         await expect(pedido.gridPedido.filter({ hasText: '0514' })).toBeVisible()
-        // await page.waitForTimeout(1000)
 
         //deletar item do pedido via api
         await pedidoApi.deletarItem(pedidoItem)
     });
 
-    test('Pedido - Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         // Dado que eu já tenho um item inserido no pedido.
         await page.goto('pedidos/238046')
         await expect(pedido.validaPedido).toHaveValue('238046')
+        await expect(pedido.formValorTotal).toHaveValue('117.36')
 
+        const linha = page.locator('tbody:visible tr', {hasText: '0522'})
+        await expect(linha.locator('td:visible').nth(3)).toHaveText('10,00')
+                
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
         await pedido.editarItem.click()
         await expect(pedido.inputProduto).toHaveValue(/.+/)
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 117,36')
         await pedido.inputQuantidade.fill('')
         await pedido.inputQuantidade.fill('15')
-        await pedido.inputQuantidade.press('Tab')
-        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 117,36') //TODO: não recalculando o valor total ao alterar a quantidade.
-        await page.waitForTimeout(5000)
-
+        await pedido.inputVlrMaterial.press('Tab')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 117,36') 
+        await pedido.salvarItem.click()
+        
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
+        await expect(pedido.validaPedido).toHaveValue('238046')
+        await expect(pedido.formValorTotal).not.toHaveValue('117.36')
+        await expect(linha.locator('td:visible').nth(3)).toHaveText('15,00')
     })
 
-    test('Pedido - Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         // Dado que eu iniciei a inclusão de um novo item no pedido.
         await page.goto('pedidos/238045')

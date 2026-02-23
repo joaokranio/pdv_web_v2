@@ -15,6 +15,7 @@ export class Pedido {
     readonly inputCondicaoPagamento: Locator
     readonly inputFormaPagamento: Locator
     readonly inputListaPreco: Locator
+    readonly formValorTotal: Locator
     readonly input: Locator
     readonly pesquisaIcon: Locator
     readonly btnSalvar: Locator
@@ -27,6 +28,7 @@ export class Pedido {
     readonly inputTipoVenda: Locator
     readonly inputUnidade: Locator
     readonly inputQuantidade: Locator
+    readonly inputVlrMaterial: Locator
     readonly totalItem: Locator
     readonly salvarItem: Locator
     readonly cancelarItem: Locator
@@ -48,6 +50,7 @@ export class Pedido {
         this.inputCondicaoPagamento = page.locator('#form-input-condicao-pagamento input.sc-lookup-input-value')
         this.inputFormaPagamento = page.locator('#form-input-forma-pagamento input.sc-lookup-input-value')
         this.inputListaPreco = page.locator('#form-input-lista-preco input.sc-lookup-input-value')
+        this.formValorTotal = page.locator('#form-input-valor-total')
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
         this.btnSalvar = page.locator('id=form-button-salvar')
@@ -60,6 +63,7 @@ export class Pedido {
         this.inputTipoVenda = page.locator('#form-input-tipo-venda input.sc-lookup-input-value')
         this.inputUnidade = page.locator('#form-input-unidade input.sc-lookup-input-value')
         this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
+        this.inputVlrMaterial = page.locator('div.col-sm-12', { hasText: 'Valor do Material' }).getByRole('textbox')
         this.totalItem = page.locator('.modal-footer span')
         this.salvarItem = page.locator('.modal-footer #form-button-salvar:visible')
         this.cancelarItem = page.locator('.modal-footer #form-button-cancelar:visible')
