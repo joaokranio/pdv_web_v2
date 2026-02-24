@@ -3,9 +3,11 @@ import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
-import { saveItemId, savePedidoId } from '../../utils/pedidoStore'
+import {  getPedidoData, savePedidoId, savePedidoItemId } from '../../utils/pedidoStore'
 import { PedidoApi } from '../../api/PedidoApi'
+import { buildPedidoPayload } from '../../utils/pedidoFactory'
 import { request } from 'node:http'
+import console from 'node:console'
 
 let pedidoApi: PedidoApi
 
@@ -141,9 +143,21 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
         const pedido: Pedido = new Pedido(page)
+
+        const payload = buildPedidoPayload("pedidoItem")
+
+        await pedidoApi.newPedido("pedidoItem", payload)
+
+        const data = getPedidoData("pedidoItem")
+        const pedidoId = data.pedidoId
+
+        console.log('Pedido criado com ID:', pedidoId)
+
         // Dado que informei os dados da cabeça do pedido.
-        await page.goto('pedidos/238050')
-        await expect(pedido.validaPedido).toHaveValue('238050')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+
+
         await expect(page.locator('td[colspan="12"]')).toBeVisible({ timeout: 10000 })
         await expect(pedido.gridPedido).toHaveText('Nenhum registro encontrado!')
         await pedido.addPedido.click()
@@ -180,17 +194,18 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         const pedidoItem = body?.data?.pedidoItemId
 
         expect(pedidoItem).toBeTruthy()
-        saveItemId('itemPedido', pedidoItem)
+        savePedidoItemId('itemPedido', pedidoItem)
         console.log('Item criado com ID:', pedidoItem)
 
         // Então o item do pedido deverá aparecer na grid do pedido com os dados que foram  informado.
-        await expect(pedido.validaPedido).toHaveValue('238050')
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         // await expect(page.locator('div.w-full td').filter({ hasText: '0514' })).toBeVisible()
         await expect(pedido.gridPedido.filter({ hasText: '0514' })).toBeVisible()
 
         //deletar item do pedido via api
         await pedidoApi.deletarItem(pedidoItem)
-    });
+        await pedidoApi.deletarPedido(pedidoId)
+    })
 
     test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)

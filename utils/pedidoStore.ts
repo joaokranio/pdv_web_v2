@@ -1,38 +1,93 @@
 import fs from 'fs'
 import path from 'path'
 
-const filePath = path.resolve(__dirname,'../test-data/pedido.json')
+const runtimeDir = path.resolve(__dirname, '../test-data/runtime')
 
-export function savePedidoId(chave: string, pedidoId: number) {
-  let data: any = {}
-
-  if (fs.existsSync(filePath)) {
-    data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+function ensureRuntimeFolderExists() {
+  if (!fs.existsSync(runtimeDir)) {
+    fs.mkdirSync(runtimeDir, {recursive: true})
   }
+}
 
-  data[chave] = { pedidoId }
+function getFilePath(cenario: string) {
+  ensureRuntimeFolderExists()
+  return path.join(runtimeDir, `${cenario}.json`)
+}
 
+function ensureFileExists(filePath: string){
+  if (!fs.existsSync(filePath)) {
+    const initalDate = {
+      pedidoId: null,
+      pedidoItemId: null,
+      createAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    fs.writeFileSync(filePath, JSON.stringify(initalDate,null,2))
+  }
+}
+
+function readFile(filePath: string) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+}
+
+function writeFile(filePath: string, data:any) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
 }
 
-export function saveItemId(chave: string, pedidoItem: number) {
-  let data: any = {}
+// =====================
+// SALVAR PEDIDO
+// =====================
 
-  if (fs.existsSync(filePath)) {
-    data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+export function savePedidoId(cenario: string, pedidoId: number) {
+  const filePath = getFilePath(cenario)
+  ensureFileExists(filePath)
+
+  const data = readFile(filePath)
+
+  data.pedidoId = pedidoId
+  data.updatedAt = new Date().toISOString()
+
+  writeFile(filePath, data)
+}
+
+// =====================
+// SALVAR ITEM
+// =====================
+
+export function savePedidoItemId(cenario: string, pedidoItemId: number) {
+  const filePath = getFilePath(cenario)
+  ensureFileExists(filePath)
+
+  const data = readFile(filePath)
+
+  data.pedidoItemId = pedidoItemId
+  data.updatedAt = new Date().toISOString()
+
+  writeFile(filePath, data)
+}
+
+// ======================
+// LER DADOS
+// ======================
+
+export function getPedidoData(cenario: string) {
+  const filePath = getFilePath(cenario)
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error (` Arquivo do cenário "${cenario}" não encontrado.`)
   }
 
-  data[chave] = { pedidoItem }
-
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
+  return readFile(filePath)
 }
 
-export function getPedidoId(chave: string): number {
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-  return data[chave].pedidoId
-}
+// ========================
+// LIMPAR ARQUIVO
+// ========================
 
-export function getPedidoItem(chave: string): number {
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-  return data[chave].pedidoItem
+export function clearPedidoData(cenario: string) {
+  const filePath = getFilePath(cenario)
+
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath)
+  }
 }

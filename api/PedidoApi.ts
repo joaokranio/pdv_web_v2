@@ -1,6 +1,8 @@
 import { Page, APIResponse, expect } from '@playwright/test'
 import { ENV } from '../utils/env'
 import console from 'node:console'
+import { savePedidoId } from '../utils/pedidoStore'
+
 
 export class PedidoApi {
   private page: Page
@@ -24,17 +26,31 @@ export class PedidoApi {
   }
 
   //Novo Pedido
-  async newPedido(): Promise<APIResponse> {
+  async newPedido(context: string, payload: any): Promise<APIResponse> {
     const token = await this.getToken()
 
     const response = await this.request.post(`${this.apiUrl}/v1/pedido/`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'aplication/json'
-      }
+        'Content-Type': 'application/json'
+      },
+      data: payload
     })
-    console.log('status:', response.status())
-    console.log('Body:', await response.status())
+
+    expect(response.ok()).toBeTruthy()
+
+    const body = await response.json()
+
+    const pedidoId = body.data?.pedidoId
+
+    if (!pedidoId) {
+      throw new Error(`PedidoId não retornado pela API.Response: ${JSON.stringify(body)}`)
+    }
+
+    savePedidoId(context, pedidoId)
+
+    console.log(`Pedido criado: ${pedidoId} | Contexto: ${context}`)
+
     return response
   }
 
