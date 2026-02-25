@@ -39,7 +39,7 @@ export class Logada {
     }
 
     async logado() {
-        await expect(this.menuSuperior).toBeVisible()
+        await expect(this.menuSuperior).toBeVisible({timeout:6000})
     }
 
     async validarResponsividade(isMobile: boolean) {

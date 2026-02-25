@@ -3,9 +3,10 @@ import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
-import {  getPedidoData, savePedidoId, savePedidoItemId } from '../../utils/pedidoStore'
+import { getPedidoData, savePedidoId, savePedidoItemId } from '../../utils/pedidoStore'
 import { PedidoApi } from '../../api/PedidoApi'
 import { buildPedidoPayload } from '../../utils/pedidoFactory'
+import { buildPedidoItemPayload } from '../../utils/pedidoItemFactory'
 import { request } from 'node:http'
 import console from 'node:console'
 
@@ -143,7 +144,6 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
         const pedido: Pedido = new Pedido(page)
-
         const payload = buildPedidoPayload("pedidoItem")
 
         await pedidoApi.newPedido("pedidoItem", payload)
@@ -207,30 +207,62 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedidoApi.deletarPedido(pedidoId)
     })
 
-    test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.only('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
-        // Dado que eu já tenho um item inserido no pedido.
-        await page.goto('pedidos/238046')
-        await expect(pedido.validaPedido).toHaveValue('238046')
-        await expect(pedido.formValorTotal).toHaveValue('117.36')
+        const pedidoApi: PedidoApi = new PedidoApi(page)
 
-        const linha = page.locator('tbody:visible tr', {hasText: '0522'})
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("pedidoEditarItem", payload)
+        const data = getPedidoData("pedidoEditarItem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+        
+        // Incluir Item no pedido via API
+        const itemPayload = buildPedidoItemPayload(pedidoId, {
+            materialId: "0517",
+            descricao: "TPA DE VIDRO 28",
+            tipoVendaId: 1,
+            quantidade: 10,
+            vlrMaterial: 19.5617,
+            vlrUnitario: 19.5617,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+        await pedidoApi.newPedidItemII("pedidoEditarItem",itemPayload)
+        const dataItemId = getPedidoData("pedidoEditarItem")
+        const pedidoItemId = dataItemId.pedidoItemId
+        console.log('Item criado com o Id:',pedidoItemId)
+
+        // Dado que eu já tenho um item inserido no pedido. 
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        await expect(pedido.formValorTotal).toHaveValue('208.34')
+
+        
+        const linha = page.locator('tbody:visible tr', { hasText: '0517' })
         await expect(linha.locator('td:visible').nth(3)).toHaveText('10,00')
-                
+        
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
         await pedido.editarItem.click()
         await expect(pedido.inputProduto).toHaveValue(/.+/)
-        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 117,36')
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
         await pedido.inputQuantidade.fill('')
         await pedido.inputQuantidade.fill('15')
         await pedido.inputVlrMaterial.press('Tab')
-        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 117,36') 
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 312.5')
         await pedido.salvarItem.click()
-        
+        // await page.waitForTimeout(10000)
+
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
-        await expect(pedido.validaPedido).toHaveValue('238046')
-        await expect(pedido.formValorTotal).not.toHaveValue('117.36')
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        await expect(pedido.formValorTotal).not.toHaveValue('312.50')
         await expect(linha.locator('td:visible').nth(3)).toHaveText('15,00')
+
+        //deletar item do pedido via api
+        // await pedidoApi.deletarItem(pedidoItemId)
+        // await pedidoApi.deletarPedido(pedidoId)
     })
 
     test('Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {

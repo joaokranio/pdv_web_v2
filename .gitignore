@@ -1,0 +1,17 @@
+node_modules/
+reports
+test-data/pedido.json
+/test-data/runtime/
+auth.json
+.env
+.txt
+.bak
+
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
