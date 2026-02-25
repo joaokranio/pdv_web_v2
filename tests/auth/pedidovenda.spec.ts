@@ -230,7 +230,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
             vlrDescontoTotal: 0,
             naturezaOperacaoId: "5101B"
         })
-        await pedidoApi.newPedidItemII("pedidoEditarItem",itemPayload)
+        await pedidoApi.newPedidItem("pedidoEditarItem",itemPayload)
         const dataItemId = getPedidoData("pedidoEditarItem")
         const pedidoItemId = dataItemId.pedidoItemId
         console.log('Item criado com o Id:',pedidoItemId)
@@ -261,8 +261,8 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await expect(linha.locator('td:visible').nth(3)).toHaveText('15,00')
 
         //deletar item do pedido via api
-        // await pedidoApi.deletarItem(pedidoItemId)
-        // await pedidoApi.deletarPedido(pedidoId)
+        await pedidoApi.deletarItem(pedidoItemId)
+        await pedidoApi.deletarPedido(pedidoId)
     })
 
     test('Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {

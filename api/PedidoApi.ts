@@ -1,7 +1,7 @@
 import { Page, APIResponse, expect } from '@playwright/test'
 import { ENV } from '../utils/env'
 import console from 'node:console'
-import { savePedidoId,savePedidoItemId } from '../utils/pedidoStore'
+import { savePedidoId, savePedidoItemId } from '../utils/pedidoStore'
 
 
 export class PedidoApi {
@@ -83,47 +83,10 @@ export class PedidoApi {
     return response
   }
 
-  // Inserir item no pedido
-  // async newPedidoItem(): Promise<APIResponse> {
-  //   const token = await this.getToken()
-
-  //   const response = await this.request.post(`${this.apiUrl}/v1/pedidoItem/`, {
-  //     headers: {
-  //       Authorization: `Bearer ${token}`,
-  //       'Content-Type': 'aplication/json'
-  //     }
-  //   })
-  //   console.log('status:', response.status())
-  //   console.log('Body:', await response.status())
-  //   return response
-  // }
-
-  async newPedidItem(payload: any): Promise<APIResponse> {
-    const token = await this.getToken()
-
-    const response = await this.request.post(`${this.apiUrl}/v1/pedidoItem`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      data: payload
-    })
-
-    expect(response.ok()).toBeTruthy()
-    const body = await response.json()
-    const pedidoItemId = body.data?.pedidoItemId
-
-    if (!pedidoItemId) {
-      throw new Error(`PedidoItemId não retornado pela API. Response: ${JSON.stringify(body)}`)
-    }
-
-    console.log(`Item incluído: ${pedidoItemId} | Pedido: ${payload.pedidoId}`)
-
-    return response
-  }
-
   // ===================================================================
-    async newPedidItemII(context: string, payload: any): Promise<APIResponse> {
+  // Inserir item no pedido
+  // ===================================================================
+  async newPedidItem(context: string, payload: any): Promise<APIResponse> {
     const token = await this.getToken()
 
     const response = await this.request.post(`${this.apiUrl}/v1/pedidoItem/`, {
