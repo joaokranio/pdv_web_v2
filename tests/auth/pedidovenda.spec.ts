@@ -9,6 +9,7 @@ import { buildPedidoPayload } from '../../utils/pedidoFactory'
 import { buildPedidoItemPayload } from '../../utils/pedidoItemFactory'
 import { request } from 'node:http'
 import console from 'node:console'
+import { TIMEOUT } from 'node:dns'
 
 let pedidoApi: PedidoApi
 
@@ -73,10 +74,9 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
 
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
         //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
-        await page.waitForTimeout(1000)
-        page.locator('#search-input').click()
-        await page.waitForTimeout(1000)
-        page.locator('#search-button').click()
+        page.locator('#search-input').click({ timeout: 1000 })
+        await expect(page.locator('#search-input')).toHaveValue(/.+/)
+        page.locator('#search-button').click({ timeout: 1000 })
 
 
         const linha = page.locator('table tbody tr')
@@ -118,7 +118,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
 
         // Quando digito um caracter inválido (letras) onde não é permitido.
         // Campos numéricos: "cliente", "vendedor", "condição de pagamento" e "lista de preço" 
-        await pedido.caracteresInvalidos('cliente', 'sss')
+        await pedido.caracteresInvalidos('vendedor', 'sss')
 
         // Então devo ver um Toast informando que houve um erro
         const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
@@ -129,9 +129,18 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
 test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     test('Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("pedidoModalItem", payload)
+        const data = getPedidoData("pedidoModalItem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
         // Dado que informei os dados da cabeça do pedido.
-        await page.goto('pedidos/238048')
-        await expect(pedido.validaPedido).toHaveValue('238048')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), {timeout: 2000})
 
         // Quando clico no botão "+" para adicionar os itens no pedido.
         await pedido.addPedido.click()
@@ -139,18 +148,18 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         // Então é apresentado um modal para preencher as informações do item que deverá ser acrescentado no pedido.
         await expect(pedido.modalPedidoitem).toBeVisible()
 
+        // Deletar pedido criado
+        await pedidoApi.deletarPedido(pedidoId)
+
     });
 
     test('Incluir item válido no pedido', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
         const pedido: Pedido = new Pedido(page)
         const payload = buildPedidoPayload("pedidoItem")
-
         await pedidoApi.newPedido("pedidoItem", payload)
-
         const data = getPedidoData("pedidoItem")
         const pedidoId = data.pedidoId
-
         console.log('Pedido criado com ID:', pedidoId)
 
         // Dado que informei os dados da cabeça do pedido.
@@ -207,7 +216,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedidoApi.deletarPedido(pedidoId)
     })
 
-    test.only('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
@@ -217,7 +226,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         const data = getPedidoData("pedidoEditarItem")
         const pedidoId = data.pedidoId
         console.log('Pedido criado com ID:', pedidoId)
-        
+
         // Incluir Item no pedido via API
         const itemPayload = buildPedidoItemPayload(pedidoId, {
             materialId: "0517",
@@ -230,20 +239,20 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
             vlrDescontoTotal: 0,
             naturezaOperacaoId: "5101B"
         })
-        await pedidoApi.newPedidItem("pedidoEditarItem",itemPayload)
+        await pedidoApi.newPedidItem("pedidoEditarItem", itemPayload)
         const dataItemId = getPedidoData("pedidoEditarItem")
         const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:',pedidoItemId)
+        console.log('Item criado com o Id:', pedidoItemId)
 
         // Dado que eu já tenho um item inserido no pedido. 
         await page.goto(`pedidos/${pedidoId}`)
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         await expect(pedido.formValorTotal).toHaveValue('208.34')
 
-        
+
         const linha = page.locator('tbody:visible tr', { hasText: '0517' })
         await expect(linha.locator('td:visible').nth(3)).toHaveText('10,00')
-        
+
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
         await pedido.editarItem.click()
         await expect(pedido.inputProduto).toHaveValue(/.+/)
@@ -267,9 +276,18 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
 
     test('Cancelar inclusão de item no pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("cancelarInclusaoItem", payload)
+        const data = getPedidoData("cancelarInclusaoItem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
         // Dado que eu iniciei a inclusão de um novo item no pedido.
-        await page.goto('pedidos/238045')
-        await expect(pedido.validaPedido).toHaveValue('238045')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         await pedido.addPedido.click()
 
         // E informo os dados do item
@@ -284,24 +302,54 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedido.cancelarItem.click()
 
         // Então o modal deverá fechar e voltar para tela de pedidos sem que tenha incluido nenhum item.
-        await expect(pedido.validaPedido).toHaveValue('238045')
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         await expect(page.locator('td[colspan="12"]')).toBeVisible({ timeout: 10000 })
         await expect(pedido.gridPedido).toHaveText('Nenhum registro encontrado!')
+
+        // Deletar pedido 
+        await pedidoApi.deletarPedido(pedidoId)
+
     })
 })
 
-test.describe.skip('Pedido de Venda – Validações do Item', () => {
-    test('Pedido - Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+test.describe('Pedido de Venda – Validações do Item', () => {
+    test('Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("camposObrigatoriositem", payload)
+        const data = getPedidoData("camposObrigatoriositem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
+
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+
+        await pedido.addPedido.click()
+
         // Dado que estou na tela de inclusão de um item no pedido.
+        await expect(pedido.modalPedidoitem).toBeVisible()
+        await expect(page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')).not.toBeVisible()
 
         // Quando tento salvar o item sem preencher os campos obrigatórios.
+        await pedido.salvarItem.click()
 
         // Então o sistema deverá impedir o salvamento
         // E exibir um Toast na informando que é necessário informar os campos obrigatórios
         // E os campos obrigatórios devem ser marcados com inválidos.
+        const messageToast = 'ATENÇÃO! Prencha todos os campos obrigatórios.'
+        await toast.toast(messageToast)
+        await expect(page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')).toBeVisible()
+
+        // Deletar pedido 
+        await pedidoApi.deletarPedido(pedidoId)
     });
 
-    test('Pedido - Bloquear preenchimento de campos numéricos com caracteres inválidos', { tag: ['@medium', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test.skip('Bloquear preenchimento de campos numéricos com caracteres inválidos', { tag: ['@medium', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de inclusão de um item no pedido.
 
         // Quando tento digitar letras em campos numéricos
