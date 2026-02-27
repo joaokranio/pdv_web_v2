@@ -333,7 +333,7 @@ test.describe('Pedido de Venda – Validações do Item', () => {
 
         // Dado que estou na tela de inclusão de um item no pedido.
         await expect(pedido.modalPedidoitem).toBeVisible()
-        await expect(page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')).not.toBeVisible()
+        await expect(pedido.camposObrigatorios).not.toBeVisible()
 
         // Quando tento salvar o item sem preencher os campos obrigatórios.
         await pedido.salvarItem.click()
@@ -343,7 +343,7 @@ test.describe('Pedido de Venda – Validações do Item', () => {
         // E os campos obrigatórios devem ser marcados com inválidos.
         const messageToast = 'ATENÇÃO! Prencha todos os campos obrigatórios.'
         await toast.toast(messageToast)
-        await expect(page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')).toBeVisible()
+        await expect(pedido.camposObrigatorios).toBeVisible()
 
         // Deletar pedido 
         await pedidoApi.deletarPedido(pedidoId)
@@ -359,16 +359,58 @@ test.describe('Pedido de Venda – Validações do Item', () => {
     });
 })
 
-test.describe.skip('Pedido de Venda – Cálculos do Item', () => {
-    test('Pedido - Calcular valor total do item ao informar quantidade e valor unitário', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+test.describe('Pedido de Venda – Cálculos do Item', () => {
+    test('Calcular valor total do item ao informar quantidade e valor unitário', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("calculoItem", payload)
+        const data = getPedidoData("calculoItem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
+        // Incluir Item no pedido via API
+        const itemPayload = buildPedidoItemPayload(pedidoId, {
+            materialId: "0517",
+            descricao: "TPA DE VIDRO 28",
+            tipoVendaId: 1,
+            quantidade: 10,
+            vlrMaterial: 19.5617,
+            vlrUnitario: 19.5617,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+        await pedidoApi.newPedidItem("calculoItem", itemPayload)
+        const dataItemId = getPedidoData("calculoItem")
+        const pedidoItemId = dataItemId.pedidoItemId
+        console.log('Item criado com o Id:', pedidoItemId)
+
         // Dado que selecionei um item válido.
-
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        await pedido.editarItem.click()
+        
         // Quando informo a quantidade do item.
-
+        await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
+        await pedido.inputQuantidade.fill('')
+        await pedido.inputQuantidade.fill('15')
+        await pedido.inputVlrMaterial.fill('')
+        await pedido.inputVlrMaterial.fill('21,5617')
+        
         // Então o sistema deverá exibir o valor total desse item no canto inferior esquedo do janela.
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 344,45',{timeout:2000})
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItemId)
+        await pedidoApi.deletarPedido(pedidoId)
     });
 
-    test('Pedido - Recalcular valor do item ao alterar quantidade', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.skip('Pedido - Recalcular valor do item ao alterar quantidade', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu já selecionei um item válido e informei a quantidade.
 
         // Quando quando altero a quantidade informada.
@@ -376,22 +418,110 @@ test.describe.skip('Pedido de Venda – Cálculos do Item', () => {
         // Então o sistema deverá refazer o calculo e exibir o novo valor 
     });
 
-    test('Pedido - Aplicar desconto percentual no item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Aplicar desconto percentual no item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("calculoDescontoItem", payload)
+        const data = getPedidoData("calculoDescontoItem")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
+        // Incluir Item no pedido via API
+        const itemPayload = buildPedidoItemPayload(pedidoId, {
+            materialId: "0517",
+            descricao: "TPA DE VIDRO 28",
+            tipoVendaId: 1,
+            quantidade: 10,
+            vlrMaterial: 19.5617,
+            vlrUnitario: 19.5617,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+        await pedidoApi.newPedidItem("calculoDescontoItem", itemPayload)
+        const dataItemId = getPedidoData("calculoDescontoItem")
+        const pedidoItemId = dataItemId.pedidoItemId
+        console.log('Item criado com o Id:', pedidoItemId)
+
         // Dado que informei um item válido no pedido de venda.
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        // await page.goto(`pedidos/238236`)
+        // await expect(pedido.validaPedido).toHaveValue('238236')
+        await pedido.editarItem.click()
 
+        await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
+        
         // Quando aplico o desconto usando a opção de "Desconto Percentual (%)".
-
+        await pedido.inputDescontoPerc.fill('10,00')
+        
+        // await page.waitForTimeout(10000)
+        
         // Então o sistema deverá informar o valor de desconto no campo "Valor do desconto Total"
+        await expect(pedido.vlrDescontoTotal).toHaveValue('19,56')
         // E fazer o abatimento desse valor no total do pedido.
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 188,78')
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItemId)
+        await pedidoApi.deletarPedido(pedidoId)
     });
 
-    test('Pedido - Aplicar desconto em valor no item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Aplicar desconto em valor no item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("calculoDescontoItemValor", payload)
+        const data = getPedidoData("calculoDescontoItemValor")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
+        // Incluir Item no pedido via API
+        const itemPayload = buildPedidoItemPayload(pedidoId, {
+            materialId: "0517",
+            descricao: "TPA DE VIDRO 28",
+            tipoVendaId: 1,
+            quantidade: 10,
+            vlrMaterial: 19.5617,
+            vlrUnitario: 19.5617,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+        await pedidoApi.newPedidItem("calculoDescontoItemValor", itemPayload)
+        const dataItemId = getPedidoData("calculoDescontoItemValor")
+        const pedidoItemId = dataItemId.pedidoItemId
+        console.log('Item criado com o Id:', pedidoItemId)
+
         // Dado que que informei um item válido no pedido de venda.
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        // await page.goto(`pedidos/238236`)
+        // await expect(pedido.validaPedido).toHaveValue('238236')
+        await pedido.editarItem.click()
+
+        await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
 
         // Quando aplico o desconto usando a opção de "Desconto Valor ($)".
+        await page.locator('div.col-sm-12', { hasText: 'Desconto ($)' }).locator('input').fill('10,00')
 
         // Entãoo sistema deverá informar o valor de desconto no campo "Valor do desconto Total"
+        await expect(pedido.vlrDescontoTotal).toHaveValue('10,00')
         // E fazer o abatimento desse valor no total do pedido.
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 198,34')
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItemId)
+        await pedidoApi.deletarPedido(pedidoId)
     });
 })
 

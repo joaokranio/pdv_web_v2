@@ -29,9 +29,12 @@ export class Pedido {
     readonly inputUnidade: Locator
     readonly inputQuantidade: Locator
     readonly inputVlrMaterial: Locator
+    readonly inputDescontoPerc: Locator
+    readonly vlrDescontoTotal: Locator
     readonly totalItem: Locator
     readonly salvarItem: Locator
     readonly cancelarItem: Locator
+    readonly camposObrigatorios: Locator
 
     // Editar item
     readonly editarItem : Locator
@@ -63,10 +66,13 @@ export class Pedido {
         this.inputTipoVenda = page.locator('#form-input-tipo-venda input.sc-lookup-input-value')
         this.inputUnidade = page.locator('#form-input-unidade input.sc-lookup-input-value')
         this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
-        this.inputVlrMaterial = page.locator('div.col-sm-12', { hasText: 'Valor do Material' }).getByRole('textbox')
+        this.inputVlrMaterial = page.locator('div.col-sm-12', { hasText: 'Valor do Material' }).locator('input')
+        this.inputDescontoPerc = page.locator('div.col-sm-12', { hasText: 'Desconto (%)' }).locator('input')
+        this.vlrDescontoTotal = page.locator('div.col-sm-12', { hasText: 'Valor do Desconto Total' }).locator('input')
         this.totalItem = page.locator('.modal-footer span')
         this.salvarItem = page.locator('.modal-footer #form-button-salvar:visible')
         this.cancelarItem = page.locator('.modal-footer #form-button-cancelar:visible')
+        this.camposObrigatorios = page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')
         
         // Editar item
         this.editarItem = page.locator('td.h-100 i.fa-lg.text-success')
