@@ -262,7 +262,6 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedido.inputVlrMaterial.press('Tab')
         await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 312.5')
         await pedido.salvarItem.click()
-        // await page.waitForTimeout(10000)
 
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
@@ -525,11 +524,46 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
     });
 })
 
-test.describe.skip('Pedido de Venda – Grid de Itens', () => {
-    test('Pedido - Exibir corretamente os valores calculados na grid de itens', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
-        // Dado que eu informei/inseri os itens dentro de pedido de venda.
+test.describe('Pedido de Venda – Grid de Itens', () => {
+    test('xxxxx Pedido - Exibir corretamente os valores calculados na grid de itens', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
 
+        // // Incluir pedido via API
+        // const payload = buildPedidoPayload("pedidoItem")
+        // await pedidoApi.newPedido("calculoDescontoItemValor", payload)
+        // const data = getPedidoData("calculoDescontoItemValor")
+        // const pedidoId = data.pedidoId
+        // console.log('Pedido criado com ID:', pedidoId)
+
+        // // Incluir Item no pedido via API
+        // const itemPayload = buildPedidoItemPayload(pedidoId, {
+        //     materialId: "0517",
+        //     descricao: "TPA DE VIDRO 28",
+        //     tipoVendaId: 1,
+        //     quantidade: 10,
+        //     vlrMaterial: 19.5617,
+        //     vlrUnitario: 19.5617,
+        //     vlrDesconto: 0,
+        //     vlrDescontoTotal: 0,
+        //     naturezaOperacaoId: "5101B"
+        // })
+        // await pedidoApi.newPedidItem("calculoDescontoItemValor", itemPayload)
+        // const dataItemId = getPedidoData("calculoDescontoItemValor")
+        // const pedidoItemId = dataItemId.pedidoItemId
+        // console.log('Item criado com o Id:', pedidoItemId)
+
+        // Dado que que informei um item válido no pedido de venda.
+        // await page.goto(`pedidos/${pedidoId}`)
+        // await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        
+        // Dado que eu informei/inseri os itens dentro de pedido de venda.
+        
         // Quando volto para a grid.
+        await page.goto(`pedidos/238236`)
+        await expect(pedido.validaPedido).toHaveValue('238236')
+        // await pedido.editarItem.click()
 
         // Então devor ver as informações apresentadas na grid respeitando o seguinte calculo:
         // Valor dos itens = (Qtde x Vlr. Material) - Vlr.Desoneração
@@ -538,9 +572,56 @@ test.describe.skip('Pedido de Venda – Grid de Itens', () => {
         //                  + Vlr. Frete
         //                  + Vlr.IPI
         //                  + Vlr.ST 
+
+        function parseBR(value: string): number {
+            return Number(
+                value
+                .replace('R$', '')
+                .replace(/\./g, '')
+                .replace(',', '')
+                .trim()
+            )
+        }
+
+        const linha = page.locator('table:visible tr', { hasText: '0513' }) //codigo
+        const cells = linha.locator('td')
+
+        const qtde = parseBR(await cells.nth(3).innerText())
+        const unit = parseBR(await cells.nth(5).innerText())
+        const desc = parseBR(await cells.nth(6).innerText())
+        const frete = parseBR(await cells.nth(7).innerText())
+        const ipi = parseBR(await cells.nth(8).innerText())
+        const st = parseBR(await cells.nth(9).innerText())
+        const desoneracao = parseBR(await cells.nth(10).innerText())
+        const totalGrid = parseBR(await cells.nth(11).innerText())
+
+        const totalCalculo = 
+            (qtde * unit)
+            - desc 
+            + frete 
+            + ipi 
+            + st 
+            - desoneracao
+
+        const totalItemGrid = Number(totalCalculo.toFixed(2))
+         await console.log(totalItemGrid)
+
+        expect(totalItemGrid).toBe(totalGrid)
+
+
+        // await expect(linha.locator('td').nth(3)).toHaveText('25,00') // Qtde
+        // await expect(linha.locator('td').nth(5)).toHaveText('R$ 13,6116') // vlr. Unitario
+        // await expect(linha.locator('td').nth(6)).toHaveText('R$ 0,00') // vlr. Desconto Total
+        // await expect(linha.locator('td').nth(7)).toHaveText('R$ 5,55') // vlr. Frete
+        // await expect(linha.locator('td').nth(8)).toHaveText('R$ 22,48') // vlr. IPI
+        // await expect(linha.locator('td').nth(9)).toHaveText('R$ 0,00') // vlr. ST
+        // await expect(linha.locator('td').nth(10)).toHaveText('R$ 0,00') // vlr. Desoneração
+        // await expect(linha.locator('td').nth(11)).toHaveText('R$ 368,32') // vlr. Total
+
+        await page.waitForTimeout(1000)
     });
 
-    test('Pedido - Atualizar valor total do pedido conforme itens da grid', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.skip('Pedido - Atualizar valor total do pedido conforme itens da grid', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu alteri a quantidade do item dentro de pedido de venda.
 
         // Quando volto para a grid.
