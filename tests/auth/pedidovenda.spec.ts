@@ -95,7 +95,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         const message = 'Pedidos'
         await logada.validarMenu(message)
     })
-    test('Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test('Validar campos obrigatórios da cabeça do pedido', { tag: ['@high', '@regression', '@pedidos_venda',  '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
         const pedido: Pedido = new Pedido(page)
         const toast: Toast = new Toast(page)
@@ -110,7 +110,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         await toast.toast(messageToast)
     })
 
-    test('Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test('Validar digitação de caracteres inválidos', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de cadastro de pedido.
         const pedido: Pedido = new Pedido(page)
         const toast: Toast = new Toast(page)
@@ -123,6 +123,34 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
         // Então devo ver um Toast informando que houve um erro
         const messageToast = 'Erro ao tentar realizar a ação. Por favor, tente novamente mais tarde!'
         await toast.toast(messageToast)
+    })
+
+    test.only('validar campo Fator Lista Preço (Desconto)',{tag: ['@high', '@regression', '@pedidos_venda', '@web']}, async ({page})=>{
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+
+        // Incluir pedido via API
+        // const payload = buildPedidoPayload("pedidoItem")
+        // await pedidoApi.newPedido("pedidoModalItem", payload)
+        // const data = getPedidoData("pedidoModalItem")
+        // const pedidoId = data.pedidoId
+        // console.log('Pedido criado com ID:', pedidoId)
+
+        // Dado que eu informei a o cliente e a Condição de pagemaento na cabeça do pedido
+        // await page.goto(`pedidos/${pedidoId}`)
+        // await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), {timeout: 2000})
+        await page.goto(`pedidos/238277`)
+        await expect(pedido.validaPedido).toHaveValue('238277', {timeout: 2000})
+
+        // await page.waitForTimeout(10000)
+
+        // Quando altero a condição de pagamento
+        await expect(pedido.inputFatorListaPreco).toHaveValue('-6,00', {timeout:2000})
+        await pedido.inputCondicaoPagamento.fill('54')
+        await expect(pedido.inputFatorListaPreco).toHaveValue('-10,00')
+
+        // Então o campo "Fator Lista Preço (Desconto)" deverá ser alterado.
+
     })
 })
 
@@ -312,7 +340,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
 })
 
 test.describe('Pedido de Venda – Validações do Item', () => {
-    test('Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test('Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
         const toast: Toast = new Toast(page)
@@ -348,7 +376,7 @@ test.describe('Pedido de Venda – Validações do Item', () => {
         await pedidoApi.deletarPedido(pedidoId)
     });
 
-    test.skip('Bloquear preenchimento de campos numéricos com caracteres inválidos', { tag: ['@medium', '@regression', '@pedidos_venda', '@negativas', '@web'] }, async ({ page }) => {
+    test.skip('Bloquear preenchimento de campos numéricos com caracteres inválidos', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na tela de inclusão de um item no pedido.
 
         // Quando tento digitar letras em campos numéricos
@@ -681,7 +709,7 @@ test.describe.skip('Pedido de Venda – Assistente (Lista de Materiais)', () => 
         // E um campo para digitação da quantidade e logo abaixo 2 botões "-" e "+".
     });
 
-    test('Pedido - Incluir itens no pedido pela lista de materiais', { tag: ['@high', '@regression', '@pedidos_venda', '@cadastro_material', '@web'] }, async ({ page }) => {
+    test('Pedido - Incluir itens no pedido pela lista de materiais', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
         // E informei a quantidade dos itens que desejo inserir no pedido.
 

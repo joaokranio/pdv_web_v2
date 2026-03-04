@@ -15,6 +15,7 @@ export class Pedido {
     readonly inputCondicaoPagamento: Locator
     readonly inputFormaPagamento: Locator
     readonly inputListaPreco: Locator
+    readonly inputFatorListaPreco: Locator
     readonly formValorTotal: Locator
     readonly input: Locator
     readonly pesquisaIcon: Locator
@@ -53,6 +54,7 @@ export class Pedido {
         this.inputCondicaoPagamento = page.locator('#form-input-condicao-pagamento input.sc-lookup-input-value')
         this.inputFormaPagamento = page.locator('#form-input-forma-pagamento input.sc-lookup-input-value')
         this.inputListaPreco = page.locator('#form-input-lista-preco input.sc-lookup-input-value')
+        this.inputFatorListaPreco = page.locator('div.col-md-12', {hasText:'Fator lista Preço (Desconto)'}).locator('input.b-form-input:visible')
         this.formValorTotal = page.locator('#form-input-valor-total')
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
