@@ -1,4 +1,7 @@
-# 📘 Projeto de Automação de Testes – Playwright
+# 📘 Projeto de Automação de Testes – PDV_WEB_V2
+
+Framework de automação E2E desenvolvido com Playwright e TypeScript,
+seguindo boas práticas de arquitetura para testes escaláveis.
 
 Este repositório contém a estrutura padrão do projeto de **automação de testes utilizando Playwright**, seguindo boas práticas de mercado com foco em **organização, escalabilidade e fácil manutenção**.
 
