@@ -1,21 +1,21 @@
-## 📘 Framework de automação de testes E2E desenvolvido com Playwright + TypeScript, seguindo padrões de arquitetura escaláveis utilizados em projetos reais.
+# 📘 Framework de automação de testes E2E desenvolvido com Playwright + TypeScript, <p> seguindo padrões de arquitetura escaláveis utilizados em projetos reais.
 
 Este repositório contém o framework de automação de testes End-to-End (E2E) para o projeto PDV_WEB_V2. Desenvolvido com Playwright e TypeScript, o projeto utiliza padrões arquiteturais modernos para garantir testes escaláveis, sustentáveis e de alta performance.
 
 ## 🏗️ Arquitetura e Estrutura
 
-O projeto segue o padrão Page Object Model (POM) e separa responsabilidades para facilitar a manutenção:<br>
+O projeto segue o padrão Page Object Model (POM) e separa responsabilidades para facilitar a manutenção:
 ```
 pdv_web_v2/ 
-├── 📁 api/              # Abstração de chamadas de API para setup/teardown.
-├── 📁 tests/            # Casos de teste organizados por contexto (Auth/Unauth).
-├── 📁 pages/            # Page Objects (Locators e Ações)
-├── 📁 components/       # Elementos globais reutilizáveis (Modais, Toasts, Header)
-├── 📁 utils/            # Helpers, gerenciamento de estados e variáveis de ambiente
-├── 📁 test-data/        # Fixtures e massas de dados estáticas (JSON)
-├── playwright.config.ts # Configuração global do Playwright
-├── .env.example         # Exemplo de variáveis de ambiente
-└── auth.json            # Armazenamento de estado de autenticação (Storage State)
+├── 📁 api/                         # Abstração de chamadas de API para setup/teardown.
+├── 📁 tests/                       # Casos de teste organizados por contexto (Auth/Unauth).
+├── 📁 pages/                       # Page Objects (Locators e Ações).
+├── 📁 components/                  # Elementos globais reutilizáveis (Modais, Toasts, Header).
+├── 📁 utils/                       # Helpers, gerenciamento de estados e variáveis de ambiente.
+├── 📁 test-data/                   # Fixtures e massas de dados estáticas (JSON).
+├── playwright.config.ts            # Configuração global do Playwright.
+├── .env.example                    # Exemplo de variáveis de ambiente.
+└── auth.json                       # Armazenamento de estado de autenticação (Storage State).
 ```
 ## 🛠️ Tecnologias Utilizadas
 - Engine: Playwright
@@ -25,18 +25,25 @@ pdv_web_v2/
 - Segurança: Dotenv para variáveis sensíveis
 
 ## 🚀 Como Começar
-# Pré-requisitos
+### Pré-requisitos
 Antes de iniciar, você precisará ter instalado:
 - Node.js (Versão 18 ou superior)
 - VS Code (Recomendado)
 
-# Instalação
+## Instalação
 Clone o repositório:
-- git clone https://github.com/seu-usuario/pdv-web-v2-automation.git
-- npm install
-- npx playwright install
-
-Configure as variáveis de ambiente:
+```bash
+git clone https://github.com/seu-usuario/pdv-web-v2-automation.git
+```
+### Instalar as dependencias
+```bash
+npm install
+```
+### Instalar o Playwright
+```bash
+npx playwright install
+```
+### Configure as variáveis de ambiente:
 - Copie o arquivo .env.example para um novo arquivo .env.
 - Preencha as credenciais e URLs conforme necessário.
 
@@ -51,16 +58,21 @@ Configure as variáveis de ambiente:
 Você pode executar os testes de diferentes formas:
 
 Executar todos os testes em modo Headless:
-- npx playwright test
-
+```bash
+npx playwright test
+```
 Executar com interface visual (UI Mode):
-- npx playwright test --ui
-
+```bash
+npx playwright test --ui
+```
 Executar um arquivo de teste específico:
-- npx playwright test tests/auth/login.spec.ts
-
+```bash 
+npx playwright test tests/auth/login.spec.ts
+```
 Gerar e abrir o relatório de testes:
-- npx playwright show-report
+```bash
+npx playwright show-report
+```
 
 ## 💎 Boas Práticas Adotadas
 - Isolamento de Testes: Cada teste é independente e limpa seu estado quando necessário.
