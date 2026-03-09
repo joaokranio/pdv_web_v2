@@ -1,4 +1,4 @@
-# 📘 Framework de automação de testes E2E desenvolvido com Playwright + TypeScript, <p> seguindo padrões de arquitetura escaláveis utilizados em projetos reais.
+# 📘 Framework de automação de testes E2E desenvolvido com Playwright + TypeScript, seguindo padrões de arquitetura escaláveis utilizados em projetos reais.
 
 Este repositório contém o framework de automação de testes End-to-End (E2E) para o projeto PDV_WEB_V2. Desenvolvido com Playwright e TypeScript, o projeto utiliza padrões arquiteturais modernos para garantir testes escaláveis, sustentáveis e de alta performance.
 
@@ -30,7 +30,7 @@ Antes de iniciar, você precisará ter instalado:
 - Node.js (Versão 18 ou superior)
 - VS Code (Recomendado)
 
-## Instalação
+### Instalação
 Clone o repositório:
 ```bash
 git clone https://github.com/seu-usuario/pdv-web-v2-automation.git
@@ -91,5 +91,5 @@ npx playwright show-report
 - Este projeto está sob a licença MIT.
 
 ## ✨ Autor
-- Desenvolvido por João Francisco Gonçalves – (https://www.linkedin.com/in/joao-francisco-goncalves/)
-
+- Desenvolvido por:<br>
+**João Francisco Gonçalves** – [Linkedin](https://www.linkedin.com/in/joao-francisco-goncalves/)
