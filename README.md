@@ -1,223 +1,83 @@
-# 📘 Projeto de Automação de Testes – PDV_WEB_V2
+## 📘 Framework de automação de testes E2E desenvolvido com Playwright + TypeScript, seguindo padrões de arquitetura escaláveis utilizados em projetos reais.
 
-Framework de automação E2E desenvolvido com Playwright e TypeScript,
-seguindo boas práticas de arquitetura para testes escaláveis.
+Este repositório contém o framework de automação de testes End-to-End (E2E) para o projeto PDV_WEB_V2. Desenvolvido com Playwright e TypeScript, o projeto utiliza padrões arquiteturais modernos para garantir testes escaláveis, sustentáveis e de alta performance.
 
-Este repositório contém a estrutura padrão do projeto de **automação de testes utilizando Playwright**, seguindo boas práticas de mercado com foco em **organização, escalabilidade e fácil manutenção**.
+## 🏗️ Arquitetura e Estrutura
 
-A arquitetura foi pensada para separar claramente:
-
-* Casos de teste
-* Lógica de páginas (Page Object Model)
-* Componentes reutilizáveis
-* Serviços (API / backend)
-* Utilitários e massa de dados
-
----
-
-## 🧱 Estrutura de Pastas do Projeto
-
-```text
-playwright-project/
-│
-├── playwright.config.ts
-├── package.json
-├── auth.json
-├── .env
-├── .env.example
-├── .gitignore
-│
-├── api/
-│   └── PedidoApi.ts
-├── tests/
-│   ├── auth/
-│   │   ├── homepage.spec.ts
-│   │   ├── cadastro.spec.ts
-│   │   └── pedidovenda.spec.ts
-│   │
-│   └── unauth/
-│       └── login.spec.ts
-│
-├── pages/
-│   ├── LoginPage.ts
-│   ├── HomePage.ts
-│   └── PedidoPage.ts
-│
-├── components/
-│   ├── Toast.ts
-│   ├── Modal.ts
-│   └── Header.ts
-│
-├── utils/
-│   ├── env.ts
-│   └── pedidoStore.ts
-│
-├── test-data/
-│   ├── Clientes.json
-│   └── pedido.json
-│
-└── README.md
+O projeto segue o padrão Page Object Model (POM) e separa responsabilidades para facilitar a manutenção:<br>
 ```
-
----
-
-## 📂 Descrição das Pastas
-
-### 🔹 `tests/`
-
-Contém **exclusivamente os casos de teste**. Os testes devem ser escritos em **linguagem de negócio**, sem implementação técnica de página.
-
-* `e2e/` → Testes end-to-end
-* `api/` → Testes de API
-* `regression/` → Fluxos completos e regressivos
-
-> ❗ Regra: **testes não devem conter locators nem lógica de interface**.
-
----
-
-### 🔹 `pages/` (Page Object Model)
-
-Responsável por encapsular:
-
-* Locators
-* Ações da tela
-* Comportamentos específicos da página
-
-Cada tela da aplicação deve possuir uma classe correspondente.
-
-Benefícios:
-
-* Centralização da manutenção
-* Reuso
-* Testes mais legíveis
-
----
-
-### 🔹 `components/`
-
-Armazena componentes reutilizáveis que aparecem em múltiplas telas, como:
-
-* Toasts
-* Modais
-* Headers
-* Menus
-
-Evita duplicação de código e facilita manutenção de elementos globais.
-
----
-
-### 🔹 `utils/`
-
-Funções auxiliares que não pertencem nem aos testes nem às páginas:
-
-* Manipulação de datas
-* Geração de dados dinâmicos
-* Logs
-* Leitura de variáveis de ambiente
-
----
-
-### 🔹 `test-data/`
-
-Armazena massas de dados estáticas em JSON, utilizadas em cenários previsíveis.
-
-Exemplo:
-
-* Clientes
-* Pedidos
-
----
-
-### 🔹 `reports/`, `screenshots/`, `videos/`
-
-Diretórios gerados automaticamente pelo Playwright:
-
-* Evidências de execução
-* Relatórios HTML / Allure
-
-Essas pastas **não devem ser versionadas**.
-
----
-
-## ⚙️ Arquivos Importantes
-
-### `playwright.config.ts`
-
-Arquivo central de configuração do projeto:
-
-* Timeout
-* Browsers
-* Retries
-* Evidências
-* BaseURL
-
-Nenhuma lógica de teste deve existir aqui.
-
----
-
-### `.env` e `.env.example`
-
-Armazena informações sensíveis e variáveis de ambiente.
-
-Exemplo:
-
-```env
-BASE_URL=https://sistema.teste.com
-USER_ADMIN=admin
-PASSWORD_ADMIN=123456
+pdv_web_v2/ 
+├── 📁 api/              # Abstração de chamadas de API para setup/teardown.
+├── 📁 tests/            # Casos de teste organizados por contexto (Auth/Unauth).
+├── 📁 pages/            # Page Objects (Locators e Ações)
+├── 📁 components/       # Elementos globais reutilizáveis (Modais, Toasts, Header)
+├── 📁 utils/            # Helpers, gerenciamento de estados e variáveis de ambiente
+├── 📁 test-data/        # Fixtures e massas de dados estáticas (JSON)
+├── playwright.config.ts # Configuração global do Playwright
+├── .env.example         # Exemplo de variáveis de ambiente
+└── auth.json            # Armazenamento de estado de autenticação (Storage State)
 ```
+## 🛠️ Tecnologias Utilizadas
+- Engine: Playwright
+- Linguagem: TypeScript
+- Relatórios: HTML Report / Allure Report
+- Gerenciamento de Dados: JSON Fixtures
+- Segurança: Dotenv para variáveis sensíveis
 
-> O arquivo `.env` deve estar no `.gitignore`.
+## 🚀 Como Começar
+# Pré-requisitos
+Antes de iniciar, você precisará ter instalado:
+- Node.js (Versão 18 ou superior)
+- VS Code (Recomendado)
 
----
+# Instalação
+Clone o repositório:
+- git clone https://github.com/seu-usuario/pdv-web-v2-automation.git
+- npm install
+- npx playwright install
 
-### `.gitignore`
+Configure as variáveis de ambiente:
+- Copie o arquivo .env.example para um novo arquivo .env.
+- Preencha as credenciais e URLs conforme necessário.
 
-Ignora arquivos sensíveis e artefatos de execução:
+## 🧪 Cenários Automatizados
+- Login de usuário
+- Cadastro de cliente
+- Criação de pedido
+- Validação de mensagens
+- Fluxo completo de venda
 
-```gitignore
-.env
-node_modules/
-reports/
-videos/
-screenshots/
-```
+## 🧪 Executando os Testes
+Você pode executar os testes de diferentes formas:
 
----
+Executar todos os testes em modo Headless:
+- npx playwright test
 
-## 🧪 Boas Práticas Adotadas
+Executar com interface visual (UI Mode):
+- npx playwright test --ui
 
-* ✔ Testes focados em **fluxos**, não em cliques isolados
-* ✔ Uso de **Page Object Model**
-* ✔ Componentes reutilizáveis
-* ✔ Dados sensíveis fora do repositório
-* ✔ Preferência por API para preparação de cenários
-* ✔ Evitar `waitForTimeout`
-* ✔ Testes determinísticos
+Executar um arquivo de teste específico:
+- npx playwright test tests/auth/login.spec.ts
 
----
+Gerar e abrir o relatório de testes:
+- npx playwright show-report
 
-## ▶️ Execução dos Testes
+## 💎 Boas Práticas Adotadas
+- Isolamento de Testes: Cada teste é independente e limpa seu estado quando necessário.
+- Data-Driven Testing: Uso de arquivos JSON na pasta test-data para validar múltiplos cenários.
+- API Setup: Utilização de chamadas de API para criar massa de dados e agilizar o setup dos testes.
+- Custom Assertions: Validações focadas no comportamento de negócio.
+- Zero Flakiness: Evitamos waitForTimeout, priorizando auto-waiting e asserções web-first.
 
-```bash
-npx playwright test
-```
+## 📂 Detalhes das Pastas
+- tests/: Camada de negócio. Não contém seletores CSS/XPath.
+- pages/: Camada técnica. Mapeia elementos e abstrai interações da UI.
+- components/: Reduz a duplicidade em elementos que aparecem em múltiplas páginas.
+- utils/: Funções de suporte, como geradores de CPF/CNPJ ou manipuladores de datas.
 
-Relatório HTML:
+## 📄 Licença
+- Este projeto está sob a licença MIT.
 
-```bash
-npx playwright show-report
-```
+## ✨ Autor
+- Desenvolvido por João Francisco Gonçalves – (https://www.linkedin.com/in/joao-francisco-goncalves/)
 
----
-
-## 📌 Considerações Finais
-
-Esta estrutura serve como **padrão base** para projetos de automação com Playwright e pode ser facilmente estendida para:
-
-* Integração contínua (CI/CD)
-* KPIs de qualidade
-* Execuções paralelas
-* Testes multi-ambiente
-
-Manter a organização do projeto é fundamental para garantir **qualidade, produtividade e longevidade da automação**.
