@@ -38,11 +38,11 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.novoPedido()
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        await expect(pedido.inputCliente).toHaveValue(/.+/)
-        await expect(pedido.inputVendedor).toHaveValue(/.+/)
-        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/)
-        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/)
-        await expect(pedido.inputListaPreco).toHaveValue(/.+/)
+        await expect(pedido.inputCliente).toHaveValue(/.+/,{timeout:2000})
+        await expect(pedido.inputVendedor).toHaveValue(/.+/,{timeout:2000})
+        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/,{timeout:2000})
+        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/,{timeout:2000})
+        await expect(pedido.inputListaPreco).toHaveValue(/.+/,{timeout:2000})
 
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
@@ -167,7 +167,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
 
         // Dado que informei os dados da cabeça do pedido.
         await page.goto(`pedidos/${pedidoId}`)
-        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), { timeout: 2000 })
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), { timeout: 4000 })
 
         // Quando clico no botão "+" para adicionar os itens no pedido.
         await pedido.addPedido.click()
@@ -204,7 +204,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedido.inputProduto.press('Tab')
         await expect(pedido.inputQuantidade).toBeEditable()
         await pedido.inputQuantidade.fill('5')
-        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00',{timeout:2000})
 
 
         // Quando clico no botão "Salvar"
@@ -559,8 +559,8 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
 
         // // Incluir pedido via API
         const payload = buildPedidoPayload("pedidoItem")
-        await pedidoApi.newPedido("calculoDescontoItemValor", payload)
-        const data = getPedidoData("calculoDescontoItemValor")
+        await pedidoApi.newPedido("calculoValorItensGrid", payload)
+        const data = getPedidoData("calculoValorItensGrid")
         const pedidoId = data.pedidoId
         console.log('Pedido criado com ID:', pedidoId)
 
@@ -576,8 +576,8 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
             vlrDescontoTotal: 0,
             naturezaOperacaoId: "5101B"
         })
-        await pedidoApi.newPedidItem("calculoDescontoItemValor", itemPayload)
-        const dataItemId = getPedidoData("calculoDescontoItemValor")
+        await pedidoApi.newPedidItem("calculoValorItensGrid", itemPayload)
+        const dataItemId = getPedidoData("calculoValorItensGrid")
         const pedidoItemId = dataItemId.pedidoItemId
         console.log('Item criado com o Id:', pedidoItemId)
 
@@ -644,8 +644,8 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
 
         // Incluir pedido via API
         const payload = buildPedidoPayload("pedidoItem")
-        await pedidoApi.newPedido("calculoDescontoItemValor", payload)
-        const data = getPedidoData("calculoDescontoItemValor")
+        await pedidoApi.newPedido("calculoValorTotalItens", payload)
+        const data = getPedidoData("calculoValorTotalItens")
         const pedidoId = data.pedidoId
         console.log('Pedido criado com ID:', pedidoId)
 
@@ -661,8 +661,8 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
             vlrDescontoTotal: 0,
             naturezaOperacaoId: "5101B"
         })
-        await pedidoApi.newPedidItem("calculoDescontoItemValor", itemPayload)
-        const dataItemId = getPedidoData("calculoDescontoItemValor")
+        await pedidoApi.newPedidItem("calculoValorTotalItens", itemPayload)
+        const dataItemId = getPedidoData("calculoValorTotalItens")
         const pedidoItemId = dataItemId.pedidoItemId
         console.log('Item criado com o Id:', pedidoItemId)
 
