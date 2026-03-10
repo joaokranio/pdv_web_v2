@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
     await pedido.pedidos()
 })
 
-test.describe('Pedido de Venda – Cadastro do Pedido', () => {
+test.describe('Cadastro do Pedido', () => {
     test('Abrir tela de cadastro de pedido de venda', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que estou na pagina de cadastro de pedidos.
         const pedido: Pedido = new Pedido(page)
@@ -38,11 +38,11 @@ test.describe('Pedido de Venda – Cadastro do Pedido', () => {
         await pedido.novoPedido()
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        await expect(pedido.inputCliente).toHaveValue(/.+/,{timeout:2000})
-        await expect(pedido.inputVendedor).toHaveValue(/.+/,{timeout:2000})
-        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/,{timeout:2000})
-        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/,{timeout:2000})
-        await expect(pedido.inputListaPreco).toHaveValue(/.+/,{timeout:2000})
+        await expect(pedido.inputCliente).toHaveValue(/.+/, { timeout: 2000 })
+        await expect(pedido.inputVendedor).toHaveValue(/.+/, { timeout: 2000 })
+        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/, { timeout: 2000 })
+        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/, { timeout: 2000 })
+        await expect(pedido.inputListaPreco).toHaveValue(/.+/, { timeout: 2000 })
 
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
@@ -153,7 +153,7 @@ test.describe('Pedido de Venda – Validações da Cabeça', () => {
     })
 })
 
-test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
+test.describe('Inclusão de Itens (Modal de Item)', () => {
     test('Abrir modal de inclusão de item', { tag: ['@critical', '@smoke', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
@@ -204,7 +204,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
         await pedido.inputProduto.press('Tab')
         await expect(pedido.inputQuantidade).toBeEditable()
         await pedido.inputQuantidade.fill('5')
-        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00',{timeout:2000})
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00', { timeout: 2000 })
 
 
         // Quando clico no botão "Salvar"
@@ -338,7 +338,7 @@ test.describe('Pedido de Venda – Inclusão de Itens (Modal de Item)', () => {
     })
 })
 
-test.describe('Pedido de Venda – Validações do Item', () => {
+test.describe('Validações do Item', () => {
     test('Validar campos obrigatórios do item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
@@ -385,7 +385,7 @@ test.describe('Pedido de Venda – Validações do Item', () => {
     });
 })
 
-test.describe('Pedido de Venda – Cálculos do Item', () => {
+test.describe('Cálculos do Item', () => {
     test('Calcular valor total do item ao informar quantidade e valor unitário', { tag: ['@critical', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
@@ -427,6 +427,7 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
         await pedido.inputQuantidade.fill('15')
         await pedido.inputVlrMaterial.fill('')
         await pedido.inputVlrMaterial.fill('21,5617')
+        await expect(pedido.inputVlrMaterial).not.toHaveValue('19,5617', { timeout: 2000 })
 
         // Então o sistema deverá exibir o valor total desse item no canto inferior esquedo do janela.
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 344,45', { timeout: 2000 })
@@ -437,6 +438,7 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
     });
 
     test.skip('Pedido - Recalcular valor do item ao alterar quantidade', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+
         // Dado que eu já selecionei um item válido e informei a quantidade.
 
         // Quando quando altero a quantidade informada.
@@ -485,11 +487,12 @@ test.describe('Pedido de Venda – Cálculos do Item', () => {
 
         // Quando aplico o desconto usando a opção de "Desconto Percentual (%)".
         await pedido.inputDescontoPerc.fill('10,00')
+        await expect(pedido.inputDescontoPerc).toHaveValue('10,00', { timeout: 2000 })
 
         // await page.waitForTimeout(10000)
 
         // Então o sistema deverá informar o valor de desconto no campo "Valor do desconto Total"
-        await expect(pedido.vlrDescontoTotal).toHaveValue('19,56')
+        await expect(pedido.vlrDescontoTotal).toHaveValue('19,56', { timeout: 2000 })
         // E fazer o abatimento desse valor no total do pedido.
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 188,78')
 
@@ -671,17 +674,17 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         await page.locator('i.fa-edit:visible').click()
         await expect(pedido.inputProduto).toHaveValue('0517')
-        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 20,83', {timeout:2000})
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 20,83', { timeout: 2000 })
         await pedido.inputQuantidade.fill('')
         await pedido.inputQuantidade.fill('10')
-        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', {timeout:2000})
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', { timeout: 2000 })
         await pedido.salvarItem.click()
-        
+
         // Quando volto para a grid.
-        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(),{timeout:2000})
-        
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), { timeout: 2000 })
+
         // Então o sistema deverá recalcular o valor total do pedido.
-        await expect(pedido.formValorTotal).toHaveValue('208.34',{timeout:2000})
+        await expect(pedido.formValorTotal).toHaveValue('208.34', { timeout: 2000 })
 
         // Deletar item do pedido via api
         await pedidoApi.deletarItem(pedidoItemId)
@@ -689,16 +692,74 @@ test.describe('Pedido de Venda – Grid de Itens', () => {
     });
 })
 
-test.describe.skip('Pedido de Venda – Exclusão de Itens', () => {
-    test('Pedido - Excluir item individual pela grid', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+test.describe('Exclusão de Itens', () => {
+    test('Excluir item individual pela grid', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido("excluirItemIndividual", payload)
+        const data = getPedidoData("excluirItemIndividual")
+        const pedidoId = data.pedidoId
+        console.log('Pedido criado com ID:', pedidoId)
+
+        // Incluir Item no pedido via API
+        const itemPayload1 = buildPedidoItemPayload(pedidoId, {
+        // const itemPayload1 = buildPedidoItemPayload(238438, {
+            materialId: "0517",
+            descricao: "TPA DE VIDRO 28",
+            tipoVendaId: 1,
+            quantidade: 1,
+            vlrMaterial: 19.5617,
+            vlrUnitario: 19.5617,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+        const itemPayload2 = buildPedidoItemPayload(pedidoId, {
+        // const itemPayload2 = buildPedidoItemPayload(238438, {
+            materialId: "0514",
+            descricao: "TPA DE VIDRO 22",
+            tipoVendaId: 1,
+            quantidade: 1,
+            vlrMaterial: 14.5469,
+            vlrUnitario: 14.5469,
+            vlrDesconto: 0,
+            vlrDescontoTotal: 0,
+            naturezaOperacaoId: "5101B"
+        })
+
+        await pedidoApi.newPedidItem("excluirItemIndividual", itemPayload1)
+        await pedidoApi.newPedidItem("excluirItemIndividual", itemPayload2)
+        const dataItemId = getPedidoData("excluirItemIndividual")
+        const pedidoItemId = dataItemId.pedidoItemId
+        console.log('Item criado com o Id:', pedidoItemId)
+
         // Dado que eu tenho um pedido de venda com itens inseridos.
-
+        // await page.goto(`pedidos/238438`)
+        // await expect(pedido.validaPedido).toHaveValue('238438')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        const linhas = page.locator('div.w-full tr')
+        const qtdInicial = await linhas.count()
+        await expect(pedido.formValorTotal).toHaveValue('36.33') 
+        
         // Quando utilizo a função de exclusão.
-
+        await page.locator('i.fa-trash:visible').nth(0).click()
+        await page.locator('button', {hasText: 'Sim'}).click()
+        await expect(linhas).toHaveCount(qtdInicial - 1, {timeout:2000})
+        
         // Então o sistema deverá excluir o item do pedido e atualizar a grid e o campo "Valor Total".
+        await expect(pedido.formValorTotal).toHaveValue('15.5') 
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItemId)
+        await pedidoApi.deletarPedido(pedidoId)
     });
 
-    test('Pedido - Excluir todos os itens do pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test.skip('Excluir todos os itens do pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         // Dado que eu tenho um pedido de venda com itens inseridos.
 
         // Quando utilizo a função "Excluir todos os Itens"
