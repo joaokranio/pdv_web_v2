@@ -18,7 +18,8 @@ function ensureFileExists(filePath: string){
   if (!fs.existsSync(filePath)) {
     const initalDate = {
       pedidoId: null,
-      pedidoItemId: null,
+      pedidoItemIds: [],
+      // pedidoItemId: null,
       createAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -60,7 +61,12 @@ export function savePedidoItemId(cenario: string, pedidoItemId: number) {
 
   const data = readFile(filePath)
 
-  data.pedidoItemId = pedidoItemId
+  if (!data.pedidoItemIds) {
+    data.pedidoItemIds = []
+  }
+
+  data.pedidoItemIds.push(pedidoItemId)
+  // data.pedidoItemId = pedidoItemId
   data.updatedAt = new Date().toISOString()
 
   writeFile(filePath, data)

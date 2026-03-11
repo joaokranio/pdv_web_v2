@@ -1,0 +1,24 @@
+{
+  "TPA_VIDRO_28": {
+    "materialId": "0517",
+    "descricao": "TPA DE VIDRO 28",
+    "tipoVendaId": 1,
+    "quantidade": 10,
+    "vlrMaterial": 19.5617,
+    "vlrUnitario": 19.5617,
+    "vlrDesconto": 0,
+    "vlrDescontoTotal": 0,
+    "naturezaOperacaoId": "5101B"
+  },
+  "TPA_VIDRO_22": {
+    "materialId": "0514",
+    "descricao": "TPA DE VIDRO 22",
+    "tipoVendaId": 1,
+    "quantidade": 5,
+    "vlrMaterial": 14.5469,
+    "vlrUnitario": 14.5469,
+    "vlrDesconto": 0,
+    "vlrDescontoTotal": 0,
+    "naturezaOperacaoId": "5101B"
+  }
+}

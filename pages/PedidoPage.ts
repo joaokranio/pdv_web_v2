@@ -1,11 +1,18 @@
 import { Page, expect, APIRequestContext, Locator } from "@playwright/test"
+import { PedidoApi } from "../api/PedidoApi"
+import { buildPedidoPayload } from "../utils/pedidoFactory"
+import { getPedidoData } from "../utils/pedidoStore"
+import { getProduto } from "../utils/getProduto"
+import { buildPedidoItemPayload } from "../utils/pedidoItemFactory"
 
 
 export class Pedido {
     readonly page: Page
-    
+
     // Locators Genéricos
-    readonly addPedido: Locator
+    readonly addItemPedido: Locator
+    readonly buttonSim: Locator
+    readonly gridVazia: Locator
 
     // Locators cabeça pedido
     readonly inputCliente: Locator
@@ -19,6 +26,7 @@ export class Pedido {
     readonly formValorTotal: Locator
     readonly input: Locator
     readonly pesquisaIcon: Locator
+    readonly buttonMenuItem: Locator
     readonly btnSalvar: Locator
     readonly loocap: Locator
 
@@ -38,13 +46,15 @@ export class Pedido {
     readonly camposObrigatorios: Locator
 
     // Editar item
-    readonly editarItem : Locator
+    readonly editarItem: Locator
 
     constructor(page: Page) {
         this.page = page
 
         // Genérico
-        this.addPedido = page.locator('#adicionar-button:visible')
+        this.addItemPedido = page.locator('#adicionar-button:visible')
+        this.buttonSim = page.locator('button:visible', { hasText: 'Sim' })
+        this.gridVazia = page.locator('td[colspan="12"]')
 
         // Cabeça pedido 
         this.inputCliente = page.locator('#form-input-cliente input.sc-lookup-input-value')
@@ -54,10 +64,11 @@ export class Pedido {
         this.inputCondicaoPagamento = page.locator('#form-input-condicao-pagamento input.sc-lookup-input-value')
         this.inputFormaPagamento = page.locator('#form-input-forma-pagamento input.sc-lookup-input-value')
         this.inputListaPreco = page.locator('#form-input-lista-preco input.sc-lookup-input-value')
-        this.inputFatorListaPreco = page.locator('div.col-md-12', {hasText:'Fator lista Preço (Desconto)'}).locator('input.b-form-input:visible')
+        this.inputFatorListaPreco = page.locator('div.col-md-12', { hasText: 'Fator lista Preço (Desconto)' }).locator('input.b-form-input:visible')
         this.formValorTotal = page.locator('#form-input-valor-total')
         this.input = page.locator('input.sc-lookup-input-value')
         this.pesquisaIcon = page.locator('#search-button')
+        this.buttonMenuItem = page.locator('#menu-button:visible')
         this.btnSalvar = page.locator('id=form-button-salvar')
         this.loocap = page.locator('sc-lookup-input-value')
 
@@ -75,7 +86,7 @@ export class Pedido {
         this.salvarItem = page.locator('.modal-footer #form-button-salvar:visible')
         this.cancelarItem = page.locator('.modal-footer #form-button-cancelar:visible')
         this.camposObrigatorios = page.locator('#form-input-produto input.sc-lookup-input-value.form-control.is-invalid')
-        
+
         // Editar item
         this.editarItem = page.locator('td.h-100 i.fa-lg.text-success')
 
@@ -86,7 +97,7 @@ export class Pedido {
     }
 
     async novoPedido() {
-        await this.addPedido.click()
+        await this.addItemPedido.click()
     }
 
     async verificarTelaNovoPedido() {
@@ -126,22 +137,33 @@ export class Pedido {
         return pedidoId
     }
 
-    async deletePedido( pedidoId: number) {
-        // return await this.requestContext.delete(`/v1/pedido/${pedidoId}`)
+    async criarPedidoViaApi(cenario: string): Promise<number> {
+        const pedidoApi = new PedidoApi(this.page)
+        const payload = buildPedidoPayload("pedidoItem")
+        await pedidoApi.newPedido(cenario, payload)
+
+        const data = getPedidoData(cenario)
+        const pedidoId = data.pedidoId
+
+        console.log('Pedido criado com o id:', pedidoId)
+
+        return pedidoId
     }
 
-    async deletePedidoInterno(api: APIRequestContext, pedidoId: number) {
-        const response = await api.delete(
-            `http://192.168.193.202:5001/v1/pedido/${pedidoId}`
-        )
+    async adicionarItensViaApi(pedidoId: number, cenario: string, produtos: string[]) {
+        const pedidoApi = new PedidoApi(this.page)
+        const itensCriados: number[] = []
+        for (const produto of produtos) {
+            const item = getProduto(produto)
+            const payload = buildPedidoItemPayload(pedidoId, item)
+            await pedidoApi.newPedidItem(cenario, payload)
+            const data = getPedidoData(cenario)
+            // const pedidoItemId = data.pedidoItemId
 
-        console.log('Status:', response.status())
-        console.log('Body:', await response.text())
+            itensCriados.push(data.pedidoItemId)
 
-        expect([200, 202, 204]).toContain(response.status())
-
-        return response
+            // console.log('Item Criado com o id:', pedidoItemId)
+        }
     }
-
 
 }

@@ -77,8 +77,7 @@ export class PedidoApi {
       }
     })
 
-    console.log('Status:', response.status())
-    console.log('Body:', await response.status())
+    console.log('Pedido', pedidoId, ' excluido')
 
     return response
   }
@@ -138,8 +137,7 @@ export class PedidoApi {
         'Content-Type': 'aplication/json'
       }
     })
-    console.log('Status:', response.status())
-    console.log('Body:', await response.status())
+    console.log('Item ', itemId, ' excluido.')
 
     return response
   }
