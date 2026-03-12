@@ -3,7 +3,7 @@ import { Logada } from '../../pages/HomePage'
 import { Pedido } from '../../pages/PedidoPage'
 import { Toast } from '../../components/Toast'
 import dadosPedido from '../../test-data/clientes.json'
-import { getPedidoData, savePedidoId, savePedidoItemId } from '../../utils/pedidoStore'
+import { getPedidoData, savePedidoId, savePedidoItemId, clearPedidoData } from '../../utils/pedidoStore'
 import { PedidoApi } from '../../api/PedidoApi'
 import { buildPedidoPayload } from '../../utils/pedidoFactory'
 import { buildPedidoItemPayload } from '../../utils/pedidoItemFactory'
@@ -68,9 +68,10 @@ test.describe('Cadastro do Pedido', () => {
         const textoTitulo = page.locator('#titulo strong i').first()
         await expect(textoTitulo).toBeVisible({ timeout: 50000 })
 
-        await page.locator('#search-select').selectOption('pedidoId')
         const searchInput = page.locator('#search-input')
-        await searchInput.fill(pedidoId.toString())
+        // await searchInput.fill(pedidoId.toString())
+        await searchInput.type(pedidoId.toString(), { delay: 100 })
+        await page.locator('#search-select').selectOption('pedidoId')
 
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
         //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
@@ -130,6 +131,7 @@ test.describe('Validações da Cabeça', () => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
         // Incluir pedido via API
+        clearPedidoData('pedidoModalItem')
         const pedidoId = await pedido.criarPedidoViaApi("pedidoModalItem")
 
         // Dado que eu informei a o cliente e a Condição de pagemaento na cabeça do pedido
@@ -155,11 +157,8 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
         // Incluir pedido via API
-        const payload = buildPedidoPayload("pedidoItem")
-        await pedidoApi.newPedido("pedidoModalItem", payload)
-        const data = getPedidoData("pedidoModalItem")
-        const pedidoId = data.pedidoId
-        console.log('Pedido criado com ID:', pedidoId)
+        clearPedidoData('pedidoModalItem')
+        const pedidoId = await pedido.criarPedidoViaApi("pedidoModalItem")
 
         // Dado que informei os dados da cabeça do pedido.
         await page.goto(`pedidos/${pedidoId}`)
@@ -182,6 +181,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         const payload = buildPedidoPayload("pedidoItem")
 
         // Adicionar pedido via api
+        clearPedidoData('pedidoItem')
         const pedidoId = await pedido.criarPedidoViaApi("pedidoItem")
 
         // Dado que informei os dados da cabeça do pedido.
@@ -237,15 +237,16 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         await pedidoApi.deletarPedido(pedidoId)
     })
 
-    test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('***AQUI**** Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
         // Incluir pedido via API
+        clearPedidoData('pedidoEditarItem')
         const pedidoId = await pedido.criarPedidoViaApi("pedidoEditarItem")
 
         // Incluir Item no pedido via API
-        await pedido.adicionarItensViaApi(pedidoId,"pedidoEditarItem",["TPA_VIDRO_28"])
+        await pedido.adicionarItensViaApi(pedidoId, "pedidoEditarItem", ["TPA_VIDRO_28"])
 
         const data = getPedidoData('pedidoEditarItem')
         const pedidoItemIds = data.pedidoItemIds
@@ -275,7 +276,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         await expect(linha.locator('td:visible').nth(3)).toHaveText('15,00')
 
         //deletar item do pedido via api
-        for (const itemId of pedidoItemIds){
+        for (const itemId of pedidoItemIds) {
             await pedidoApi.deletarItem(itemId)
         }
         await pedidoApi.deletarPedido(pedidoId)
@@ -286,6 +287,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
         // Incluir pedido via API
+        clearPedidoData('cancelarInclusaoItem')
         const pedidoId = await pedido.criarPedidoViaApi("cancelarInclusaoItem")
 
         // Dado que eu iniciei a inclusão de um novo item no pedido.
@@ -322,6 +324,7 @@ test.describe('Validações do Item', () => {
         const toast: Toast = new Toast(page)
 
         // // Incluir pedido via API
+        clearPedidoData('camposObrigatoriositem')
         const pedidoId = await pedido.criarPedidoViaApi("camposObrigatoriositem")
 
 
@@ -365,24 +368,13 @@ test.describe('Cálculos do Item', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('calculoItem')
         const pedidoId = await pedido.criarPedidoViaApi("calculoItem")
 
-        // Incluir Item no pedido via API
-        const itemPayload = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 10,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        await pedidoApi.newPedidItem("calculoItem", itemPayload)
-        const dataItemId = getPedidoData("calculoItem")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        // Incluir Item no pedido via API        
+        await pedido.adicionarItensViaApi(pedidoId, "calculoItem", ["TPA_VIDRO_28"])
+        const data = getPedidoData('calculoItem')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que selecionei um item válido.
         await page.goto(`pedidos/${pedidoId}`)
@@ -402,7 +394,9 @@ test.describe('Cálculos do Item', () => {
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 344,45', { timeout: 2000 })
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
     });
 
@@ -421,24 +415,13 @@ test.describe('Cálculos do Item', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('calculoDescontoItem')
         const pedidoId = await pedido.criarPedidoViaApi("calculoDescontoItem")
 
         // Incluir Item no pedido via API
-        const itemPayload = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 10,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        await pedidoApi.newPedidItem("calculoDescontoItem", itemPayload)
-        const dataItemId = getPedidoData("calculoDescontoItem")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "calculoDescontoItem", ["TPA_VIDRO_28"])
+        const data = getPedidoData('calculoDescontoItem')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que informei um item válido no pedido de venda.
         await page.goto(`pedidos/${pedidoId}`)
@@ -452,15 +435,15 @@ test.describe('Cálculos do Item', () => {
         await pedido.inputDescontoPerc.fill('10,00')
         await expect(pedido.inputDescontoPerc).toHaveValue('10,00', { timeout: 2000 })
 
-        // await page.waitForTimeout(10000)
-
         // Então o sistema deverá informar o valor de desconto no campo "Valor do desconto Total"
         await expect(pedido.vlrDescontoTotal).toHaveValue('19,56', { timeout: 2000 })
         // E fazer o abatimento desse valor no total do pedido.
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 188,78')
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
     });
 
@@ -470,24 +453,13 @@ test.describe('Cálculos do Item', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('calculoDescontoItemValor')
         const pedidoId = await pedido.criarPedidoViaApi("calculoDescontoItemValor")
 
         // Incluir Item no pedido via API
-        const itemPayload = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 10,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        await pedidoApi.newPedidItem("calculoDescontoItemValor", itemPayload)
-        const dataItemId = getPedidoData("calculoDescontoItemValor")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "calculoDescontoItemValor", ["TPA_VIDRO_28"])
+        const data = getPedidoData('calculoDescontoItemValor')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que que informei um item válido no pedido de venda.
         await page.goto(`pedidos/${pedidoId}`)
@@ -506,7 +478,9 @@ test.describe('Cálculos do Item', () => {
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 198,34')
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
     });
 })
@@ -518,24 +492,13 @@ test.describe('Grid de Itens', () => {
         const toast: Toast = new Toast(page)
 
         // // Incluir pedido via API
+        clearPedidoData('calculoValorItensGrid')
         const pedidoId = await pedido.criarPedidoViaApi("calculoValorItensGrid")
 
         // Incluir Item no pedido via API
-        const itemPayload = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 17,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        await pedidoApi.newPedidItem("calculoValorItensGrid", itemPayload)
-        const dataItemId = getPedidoData("calculoValorItensGrid")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "calculoValorItensGrid", ["TPA_VIDRO_28"])
+        const data = getPedidoData('calculoValorItensGrid')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que que informei um item válido no pedido de venda.
         await page.goto(`pedidos/${pedidoId}`)
@@ -586,7 +549,9 @@ test.describe('Grid de Itens', () => {
         expect(totalItemGrid).toBe(totalGrid)
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
 
     });
@@ -597,31 +562,20 @@ test.describe('Grid de Itens', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('calculoValorTotalItens')
         const pedidoId = await pedido.criarPedidoViaApi("calculoValorTotalItens")
 
         // Incluir Item no pedido via API
-        const itemPayload = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 1,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        await pedidoApi.newPedidItem("calculoValorTotalItens", itemPayload)
-        const dataItemId = getPedidoData("calculoValorTotalItens")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "calculoValorTotalItens", ["TPA_VIDRO_28"])
+        const data = getPedidoData('calculoValorTotalItens')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que eu alterei a quantidade do item dentro de pedido de venda.
         await page.goto(`pedidos/${pedidoId}`)
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         await page.locator('i.fa-edit:visible').click()
         await expect(pedido.inputProduto).toHaveValue('0517')
-        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 20,83', { timeout: 2000 })
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', { timeout: 2000 })
         await pedido.inputQuantidade.fill('')
         await pedido.inputQuantidade.fill('10')
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', { timeout: 2000 })
@@ -634,7 +588,9 @@ test.describe('Grid de Itens', () => {
         await expect(pedido.formValorTotal).toHaveValue('208.34', { timeout: 2000 })
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
     });
 })
@@ -646,44 +602,20 @@ test.describe('Exclusão de Itens', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('excluirItemIndividual')
         const pedidoId = await pedido.criarPedidoViaApi("excluirItemIndividual")
 
         // Incluir Item no pedido via API
-        const itemPayload1 = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 1,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        const itemPayload2 = buildPedidoItemPayload(pedidoId, {
-            materialId: "0514",
-            descricao: "TPA DE VIDRO 22",
-            tipoVendaId: 1,
-            quantidade: 1,
-            vlrMaterial: 14.5469,
-            vlrUnitario: 14.5469,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-
-        await pedidoApi.newPedidItem("excluirItemIndividual", itemPayload1)
-        await pedidoApi.newPedidItem("excluirItemIndividual", itemPayload2)
-        const dataItemId = getPedidoData("excluirItemIndividual")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "excluirItemIndividual", ["TPA_VIDRO_28", "TPA_VIDRO_22"])
+        const data = getPedidoData('excluirItemIndividual')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que eu tenho um pedido de venda com itens inseridos.
         await page.goto(`pedidos/${pedidoId}`)
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         const linhas = page.locator('div.w-full tr')
         const qtdInicial = await linhas.count()
-        await expect(pedido.formValorTotal).toHaveValue('36.33')
+        await expect(pedido.formValorTotal).toHaveValue('285.8')
 
         // Quando utilizo a função de exclusão.
         await page.locator('i.fa-trash:visible').nth(0).click()
@@ -691,10 +623,12 @@ test.describe('Exclusão de Itens', () => {
         await expect(linhas).toHaveCount(qtdInicial - 1, { timeout: 2000 })
 
         // Então o sistema deverá excluir o item do pedido e atualizar a grid e o campo "Valor Total".
-        await expect(pedido.formValorTotal).toHaveValue('15.5')
+        await expect(pedido.formValorTotal).toHaveValue('77.46')
 
         // Deletar item do pedido via api
-        await pedidoApi.deletarItem(pedidoItemId)
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
         await pedidoApi.deletarPedido(pedidoId)
     });
 
@@ -704,51 +638,27 @@ test.describe('Exclusão de Itens', () => {
         const toast: Toast = new Toast(page)
 
         // Incluir pedido via API
+        clearPedidoData('excluirItens')
         const pedidoId = await pedido.criarPedidoViaApi("excluirItens")
 
         // Incluir Item no pedido via API
-        const itemPayload1 = buildPedidoItemPayload(pedidoId, {
-            materialId: "0517",
-            descricao: "TPA DE VIDRO 28",
-            tipoVendaId: 1,
-            quantidade: 1,
-            vlrMaterial: 19.5617,
-            vlrUnitario: 19.5617,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-        const itemPayload2 = buildPedidoItemPayload(pedidoId, {
-            materialId: "0514",
-            descricao: "TPA DE VIDRO 22",
-            tipoVendaId: 1,
-            quantidade: 1,
-            vlrMaterial: 14.5469,
-            vlrUnitario: 14.5469,
-            vlrDesconto: 0,
-            vlrDescontoTotal: 0,
-            naturezaOperacaoId: "5101B"
-        })
-
-        await pedidoApi.newPedidItem("excluirItens", itemPayload1)
-        await pedidoApi.newPedidItem("excluirItens", itemPayload2)
-        const dataItemId = getPedidoData("excluirItens")
-        const pedidoItemId = dataItemId.pedidoItemId
-        console.log('Item criado com o Id:', pedidoItemId)
+        await pedido.adicionarItensViaApi(pedidoId, "excluirItens", ["TPA_VIDRO_28", "TPA_VIDRO_22"])
+        const data = getPedidoData('excluirItens')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que eu tenho um pedido de venda com itens inseridos.
         await page.goto(`pedidos/${pedidoId}`)
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
-        
+
         // Quando utilizo a função "Excluir todos os Itens"
         await pedido.buttonMenuItem.click()
-        await page.locator('span:visible', {hasText: 'Excluir'}).click()
+        await page.locator('span:visible', { hasText: 'Excluir' }).click()
         await pedido.buttonSim.click()
-        
+
         // Então o sistema deverá excluir todos os itens do pedido.
         await expect(pedido.gridVazia).toBeVisible({ timeout: 10000 })
         await expect(pedido.gridPedido).toHaveText('Nenhum registro encontrado!')
-        
+
         // E a cabeça do pedido deverá ser mantida.
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
 
