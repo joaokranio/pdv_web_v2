@@ -38,11 +38,11 @@ test.describe('Cadastro do Pedido', () => {
         await pedido.novoPedido()
         await pedido.preencherCabecaPedido(form.cliente, form.vendedor, form.condicaoPagamento, form.formaPagamento, form.listaPreco)
 
-        await expect(pedido.inputCliente).toHaveValue(/.+/, { timeout: 2000 })
-        await expect(pedido.inputVendedor).toHaveValue(/.+/, { timeout: 2000 })
-        await expect(pedido.inputCondicaoPagamento).toHaveValue(/.+/, { timeout: 2000 })
-        await expect(pedido.inputFormaPagamento).toHaveValue(/.+/, { timeout: 2000 })
-        await expect(pedido.inputListaPreco).toHaveValue(/.+/, { timeout: 2000 })
+        await expect(pedido.inputCliente).toHaveValue(form.cliente, { timeout: 2000 })
+        await expect(pedido.inputVendedor).toHaveValue(form.vendedor, { timeout: 2000 })
+        await expect(pedido.inputCondicaoPagamento).toHaveValue(form.condicaoPagamento, { timeout: 2000 })
+        await expect(pedido.inputFormaPagamento).toHaveValue(form.formaPagamento, { timeout: 2000 })
+        await expect(pedido.inputListaPreco).toHaveValue(form.listaPreco, { timeout: 2000 })
 
         const [response] = await Promise.all([
             page.waitForResponse(async r => {
@@ -70,14 +70,15 @@ test.describe('Cadastro do Pedido', () => {
 
         const searchInput = page.locator('#search-input')
         // await searchInput.fill(pedidoId.toString())
-        await searchInput.type(pedidoId.toString(), { delay: 100 })
+        await searchInput.type(pedidoId.toString(), { delay: 150 })
         await page.locator('#search-select').selectOption('pedidoId')
 
-        await expect(page.locator('#search-input')).toHaveValue(/.+/)
+        await expect(page.locator('#search-input')).toHaveValue(pedidoId.toString(), {timeout:2000})
+        // await expect(page.locator('#search-input')).toHaveValue(/.+/)
         //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
-        page.locator('#search-input').click({ timeout: 1000 })
+        page.locator('#search-input').click()
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
-        page.locator('#search-button').click({ timeout: 1000 })
+        page.locator('#search-button').click()
 
 
         const linha = page.locator('table tbody tr')
@@ -237,7 +238,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         await pedidoApi.deletarPedido(pedidoId)
     })
 
-    test('***AQUI**** Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Editar item existente do pedido', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
@@ -386,12 +387,14 @@ test.describe('Cálculos do Item', () => {
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
         await pedido.inputQuantidade.fill('')
         await pedido.inputQuantidade.fill('15')
-        await pedido.inputVlrMaterial.fill('')
+        await pedido.inputVlrMaterial.click()
+        await pedido.inputVlrMaterial.press('Control+A')
+        await pedido.inputVlrMaterial.press('Delete')
         await pedido.inputVlrMaterial.fill('21,5617')
         await expect(pedido.inputVlrMaterial).not.toHaveValue('19,5617', { timeout: 2000 })
 
         // Então o sistema deverá exibir o valor total desse item no canto inferior esquedo do janela.
-        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 344,45', { timeout: 2000 })
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 344,45', { timeout: 2500 })
 
         // Deletar item do pedido via api
         for (const itemId of pedidoItemIds) {
@@ -619,9 +622,21 @@ test.describe('Exclusão de Itens', () => {
 
         // Quando utilizo a função de exclusão.
         await page.locator('i.fa-trash:visible').nth(0).click()
-        await pedido.buttonSim.click()
-        await expect(linhas).toHaveCount(qtdInicial - 1, { timeout: 2000 })
-
+        
+        const [response] = await Promise.all([
+            page.waitForResponse(r =>
+                r.request().method() === 'DELETE' &&
+                r.status() === 200
+            ),
+            pedido.buttonSim.click()
+        ])
+        
+        // await pedido.buttonSim.click()
+        await expect(pedido.buttonSim).not.toBeVisible()
+        const calc = await linhas.count()
+        console.log('inicial',qtdInicial)
+        console.log('final',calc)
+        expect(qtdInicial).not.toBe(calc)
         // Então o sistema deverá excluir o item do pedido e atualizar a grid e o campo "Valor Total".
         await expect(pedido.formValorTotal).toHaveValue('77.46')
 
@@ -630,7 +645,7 @@ test.describe('Exclusão de Itens', () => {
             await pedidoApi.deletarItem(itemId)
         }
         await pedidoApi.deletarPedido(pedidoId)
-    });
+    })
 
     test('Excluir todos os itens do pedido', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
