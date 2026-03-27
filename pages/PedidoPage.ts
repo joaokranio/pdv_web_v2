@@ -29,6 +29,10 @@ export class Pedido {
     readonly buttonMenuItem: Locator
     readonly btnSalvar: Locator
     readonly loocap: Locator
+    readonly btnAssitDigit: Locator
+    
+    // Pop-up/ Janelas
+    readonly assitDigit: Locator
 
     // Locators inclusão item
     readonly modalPedidoitem: Locator
@@ -71,14 +75,19 @@ export class Pedido {
         this.buttonMenuItem = page.locator('#menu-button:visible')
         this.btnSalvar = page.locator('id=form-button-salvar')
         this.loocap = page.locator('sc-lookup-input-value')
+        this.btnAssitDigit = page.locator('#button-assistente-digitacao')
+
+        // Pop-up/ Janelas
+        this.modalPedidoitem = page.locator('div.modal-content:visible', {hasText: 'Itens do Pedido'})
+        this.assitDigit = page.locator('div.modal-content:visible', {hasText:'Assistente de Digitação'})
 
         // Inclusão item
         this.gridPedido = page.locator('div.w-full td')
         this.inputProduto = page.locator('#form-input-produto input.sc-lookup-input-value')
-        this.modalPedidoitem = page.locator('div .modal-content')
         this.inputTipoVenda = page.locator('#form-input-tipo-venda input.sc-lookup-input-value')
         this.inputUnidade = page.locator('#form-input-unidade input.sc-lookup-input-value')
-        this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
+        this.inputQuantidade = page.locator('input#form-input-quantidade')
+        // this.inputQuantidade = page.locator('#form-input-quantidade input.b-form-input')
         this.inputVlrMaterial = page.locator('div.col-sm-12', { hasText: 'Valor do Material' }).locator('input')
         this.inputDescontoPerc = page.locator('div.col-sm-12', { hasText: 'Desconto (%)' }).locator('input')
         this.vlrDescontoTotal = page.locator('div.col-sm-12', { hasText: 'Valor do Desconto Total' }).locator('input')
