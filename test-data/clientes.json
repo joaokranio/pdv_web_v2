@@ -2,7 +2,7 @@
     "cabecaPedido": {
         "cliente": "25554",
         "vendedor": "40",
-        "formaPagamento": "CH",
+        "formaPagamento": "DN",
         "condicaoPagamento":"54",
         "listaPreco":"1"
         },

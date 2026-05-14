@@ -7,9 +7,9 @@ import { getPedidoData, savePedidoId, savePedidoItemId, clearPedidoData } from '
 import { PedidoApi } from '../../api/PedidoApi'
 import { buildPedidoPayload } from '../../utils/pedidoFactory'
 import { buildPedidoItemPayload } from '../../utils/pedidoItemFactory'
-import { request } from 'node:http'
-import console from 'node:console'
-import { TIMEOUT } from 'node:dns'
+// import { request } from 'node:http'
+// import console from 'node:console'
+// import { TIMEOUT } from 'node:dns'
 
 let pedidoApi: PedidoApi
 
@@ -73,17 +73,21 @@ test.describe('Cadastro do Pedido', () => {
         await searchInput.type(pedidoId.toString(), { delay: 150 })
         await page.locator('#search-select').selectOption('pedidoId')
 
-        await expect(page.locator('#search-input')).toHaveValue(pedidoId.toString(), {timeout:2000})
-        // await expect(page.locator('#search-input')).toHaveValue(/.+/)
-        //necessário essa pausa para garantir que estou salvando o estado do elemento antes de clicar para pesquisar
+        await expect(page.locator('#search-input')).toHaveValue(pedidoId.toString())
         page.locator('#search-input').click()
         await expect(page.locator('#search-input')).toHaveValue(/.+/)
         page.locator('#search-button').click()
 
+        const [respConsulta] = await Promise.all([
+            page.waitForResponse(r =>
+                r.request().method() === 'GET' &&
+                r.status() === 200
+            )
+        ])
 
         const linha = page.locator('table tbody tr')
-        await expect(linha).toHaveCount(1, { timeout: 50000 })
-        await expect(linha.first()).toContainText(pedidoId.toString(), { timeout: 50000 })
+        await expect(linha).toHaveCount(1)
+        await expect(linha.first()).toContainText(pedidoId.toString())
 
         //deletar pedido 
         await pedidoApi.deletarPedido(pedidoId)
@@ -127,7 +131,7 @@ test.describe('Validações da Cabeça', () => {
         await toast.toast(messageToast)
     })
 
-    test.fixme('BUG-43686 - validar campo Fator Lista Preço (Desconto)', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('BUG-43686 - validar campo Fator Lista Preço (Desconto)', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
         const pedidoApi: PedidoApi = new PedidoApi(page)
 
@@ -137,14 +141,16 @@ test.describe('Validações da Cabeça', () => {
 
         // Dado que eu informei a o cliente e a Condição de pagemaento na cabeça do pedido
         await page.goto(`pedidos/${pedidoId}`)
-        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), { timeout: 2000 })
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
 
         // Quando altero a condição de pagamento
-        await expect(pedido.inputFatorListaPreco).toHaveValue('-0,50', { timeout: 2000 })
-        await pedido.inputCondicaoPagamento.fill('54')
+        await expect(pedido.inputFatorListaPreco).toHaveValue('-0,50')
+        await pedido.inputCondicaoPagamento.clear()
+        await pedido.inputCondicaoPagamento.type('54', { delay: 100 })
+        await pedido.inputCondicaoPagamento.press('Tab')
 
         // Então o campo "Fator Lista Preço (Desconto)" deverá ser alterado.
-        await expect(pedido.inputFatorListaPreco).toHaveValue('-10,00')
+        await expect(pedido.inputFatorListaPreco).toHaveValue('-12,30')
 
         //deletar item do pedido via api
         await pedidoApi.deletarPedido(pedidoId)
@@ -198,7 +204,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 0,00')
         await pedido.inputProduto.fill('0514')
         await pedido.inputProduto.press('Tab')
-        await expect(pedido.inputQuantidade).toBeEditable()
+        await expect(pedido.inputQuantidade).toBeEditable({timeout:2500})
         await pedido.inputQuantidade.fill('5')
         await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00', { timeout: 2000 })
 
@@ -255,7 +261,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         // Dado que eu já tenho um item inserido no pedido. 
         await page.goto(`pedidos/${pedidoId}`)
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
-        await expect(pedido.formValorTotal).toHaveValue('208.34')
+        await expect(pedido.formValorTotal).toHaveValue('208,34')
 
 
         const linha = page.locator('tbody:visible tr', { hasText: '0517' })
@@ -264,16 +270,17 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         // Quando eu selecino a função para editar o item e troco as informações desse item e clico em "salvar".
         await pedido.editarItem.click()
         await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.inputQuantidade).toHaveValue(/.+/)
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
-        await pedido.inputQuantidade.fill('')
+        await pedido.inputQuantidade.clear()
         await pedido.inputQuantidade.fill('15')
         await pedido.inputVlrMaterial.press('Tab')
-        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 312.5')
+        await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 312,50')
         await pedido.salvarItem.click()
 
         // Então os dados do item deverá ser atualizado de acordo com as informações preenchidas no momento da edição do item.
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
-        await expect(pedido.formValorTotal).not.toHaveValue('312.50')
+        await expect(pedido.formValorTotal).not.toHaveValue('312,50')
         await expect(linha.locator('td:visible').nth(3)).toHaveText('15,00')
 
         //deletar item do pedido via api
@@ -300,7 +307,7 @@ test.describe('Inclusão de Itens (Modal de Item)', () => {
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 0,00')
         await pedido.inputProduto.fill('0514')
         await pedido.inputProduto.press('Tab')
-        await expect(pedido.inputQuantidade).toBeEditable()
+        await expect(pedido.inputQuantidade).toBeEditable({timeout:2500})
         await pedido.inputQuantidade.fill('5')
         await expect(pedido.totalItem).not.toHaveText('Valor Total: R$ 0,00')
 
@@ -385,12 +392,14 @@ test.describe('Cálculos do Item', () => {
         // Quando informo a quantidade do item.
         await expect(pedido.inputProduto).toHaveValue(/.+/)
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
-        await pedido.inputQuantidade.fill('')
+        await pedido.inputQuantidade.clear()
         await pedido.inputQuantidade.fill('15')
         await pedido.inputVlrMaterial.click()
         await pedido.inputVlrMaterial.press('Control+A')
-        await pedido.inputVlrMaterial.press('Delete')
-        await pedido.inputVlrMaterial.fill('21,5617')
+        await expect(pedido.inputVlrMaterial).toHaveValue('19,5617', { timeout: 2000 })
+        await pedido.inputVlrMaterial.clear()
+        await expect(pedido.inputVlrMaterial).toHaveValue('0,0000', { timeout: 2000 })
+        await pedido.inputVlrMaterial.type('21,5617', { delay: 100 })
         await expect(pedido.inputVlrMaterial).not.toHaveValue('19,5617', { timeout: 2000 })
 
         // Então o sistema deverá exibir o valor total desse item no canto inferior esquedo do janela.
@@ -401,16 +410,43 @@ test.describe('Cálculos do Item', () => {
             await pedidoApi.deletarItem(itemId)
         }
         await pedidoApi.deletarPedido(pedidoId)
-    });
+    })
 
-    test.skip('Recalcular valor do item ao alterar quantidade', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+    test('Recalcular valor do item ao alterar quantidade', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        clearPedidoData('recalcularItem')
+        const pedidoId = await pedido.criarPedidoViaApi("recalcularItem")
+
+        // // Incluir Item no pedido via API        
+        await pedido.adicionarItensViaApi(pedidoId, "recalcularItem", ["TPA_VIDRO_28"])
+        const data = getPedidoData('recalcularItem')
+        const pedidoItemIds = data.pedidoItemIds
 
         // Dado que eu já selecionei um item válido e informei a quantidade.
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        await pedido.editarItem.click()
 
         // Quando quando altero a quantidade informada.
+        await expect(pedido.modalPedidoitem).toBeVisible()
+        await expect(pedido.inputProduto).toHaveValue(/.+/)
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34')
+        await pedido.inputQuantidade.clear()
+        await pedido.inputQuantidade.fill('19')
 
         // Então o sistema deverá refazer o calculo e exibir o novo valor 
-    });
+        await expect(pedido.totalItem).toHaveText('Valor Total: R$ 395,83', { timeout: 2500 })
+
+        // Deletar item do pedido via api
+        for (const itemId of pedidoItemIds) {
+            await pedidoApi.deletarItem(itemId)
+        }
+        await pedidoApi.deletarPedido(pedidoId)
+    })
 
     test('Aplicar desconto percentual no item', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
         const pedido: Pedido = new Pedido(page)
@@ -579,7 +615,7 @@ test.describe('Grid de Itens', () => {
         await page.locator('i.fa-edit:visible').click()
         await expect(pedido.inputProduto).toHaveValue('0517')
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', { timeout: 2000 })
-        await pedido.inputQuantidade.fill('')
+        await pedido.inputQuantidade.clear()
         await pedido.inputQuantidade.fill('10')
         await expect(pedido.totalItem).toHaveText('Valor Total: R$ 208,34', { timeout: 2000 })
         await pedido.salvarItem.click()
@@ -588,7 +624,7 @@ test.describe('Grid de Itens', () => {
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString(), { timeout: 2000 })
 
         // Então o sistema deverá recalcular o valor total do pedido.
-        await expect(pedido.formValorTotal).toHaveValue('208.34', { timeout: 2000 })
+        await expect(pedido.formValorTotal).toHaveValue('208,34', { timeout: 2000 })
 
         // Deletar item do pedido via api
         for (const itemId of pedidoItemIds) {
@@ -618,11 +654,11 @@ test.describe('Exclusão de Itens', () => {
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
         const linhas = page.locator('div.w-full tr')
         const qtdInicial = await linhas.count()
-        await expect(pedido.formValorTotal).toHaveValue('285.8')
+        await expect(pedido.formValorTotal).toHaveValue('285,80')
 
         // Quando utilizo a função de exclusão.
         await page.locator('i.fa-trash:visible').nth(0).click()
-        
+
         const [response] = await Promise.all([
             page.waitForResponse(r =>
                 r.request().method() === 'DELETE' &&
@@ -630,15 +666,15 @@ test.describe('Exclusão de Itens', () => {
             ),
             pedido.buttonSim.click()
         ])
-        
+
         // await pedido.buttonSim.click()
         await expect(pedido.buttonSim).not.toBeVisible()
         const calc = await linhas.count()
-        console.log('inicial',qtdInicial)
-        console.log('final',calc)
+        console.log('inicial', qtdInicial)
+        console.log('final', calc)
         expect(qtdInicial).not.toBe(calc)
         // Então o sistema deverá excluir o item do pedido e atualizar a grid e o campo "Valor Total".
-        await expect(pedido.formValorTotal).toHaveValue('77.46')
+        await expect(pedido.formValorTotal).toHaveValue('77,46')
 
         // Deletar item do pedido via api
         for (const itemId of pedidoItemIds) {
@@ -678,52 +714,154 @@ test.describe('Exclusão de Itens', () => {
         await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
 
         // E atualizar o campo "Valor Total" zerando essa informação
-        await expect(pedido.formValorTotal).toHaveValue('0')
-        await page.waitForTimeout(2000)
+        await expect(pedido.formValorTotal).toHaveValue('0,00')
 
         // Deletar item do pedido via api
         await pedidoApi.deletarPedido(pedidoId)
     });
 })
 
-test.describe.skip('Pedido de Venda – Assistente de Digitação', () => {
-    test('Pedido - Abrir assistente de digitação de itens', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+test.describe('Assistente de Digitação', () => {
+    test('Abrir assistente de digitação de itens', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
+        // Incluir pedido via API
+        clearPedidoData('assistenteDigitacao')
+        const pedidoId = await pedido.criarPedidoViaApi("assistenteDigitacao")
+
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
 
         // Quando clico no botão do "Assistente de Digitação".
+        await pedido.btnAssitDigit.click()
 
         // Então o sistema deverá abrir o pop-up do assistente de digitação.
+        await expect(pedido.assitDigit).toBeVisible()
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarPedido(pedidoId)
     });
 
     test('Pedido - Incluir itens pelo assistente de digitação', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
+        // Incluir pedido via API
+        // clearPedidoData('assisDigItem')
+        // const pedidoId = await pedido.criarPedidoViaApi("assisDigItem")
+
+        await page.goto(`pedidos/238959`)
+        await expect(pedido.validaPedido).toHaveValue('238959')
+        // await page.goto(`pedidos/${pedidoId}`)
+        // await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+
         // E cliquei no botão do "Assistente de Digitação".
-
+        await pedido.btnAssitDigit.click()
+        await expect(pedido.assitDigit).toBeVisible()
+        
         // Quando preencho as informações de "Produto", "Tipo de Venda" e "Quantidade".
-
+        await pedido.inputProduto.type('0520', { delay: 100 })
+        await pedido.inputTipoVenda.type('1',{ delay: 100 })
+        // await expect(pedido.inputQuantidade).toHaveValue('0')
+        await pedido.inputQuantidade.fill('5')
+        
         // Então clico no botão "Salvar" o pop-up deverá fechar e abrir novamente em branco para a seleção de um novo item.
+        // await page.locator('div.modal-content button', {hasText: 'Salvar'}).click()
+        await pedido.salvar.click()
+        await expect(pedido.assitDigit).toBeVisible()
 
-    });
+        await page.waitForTimeout(2000)
+
+
+        // Deletar item do pedido via api
+        // await pedidoApi.deletarPedido(pedidoId)
+
+    })
 })
 
-test.describe.skip('Pedido de Venda – Assistente (Lista de Materiais)', () => {
+test.describe('Pedido de Venda – Assistente (Lista de Materiais)', () => {
     test('Pedido - Abrir assistente de inclusão por lista de materiais', { tag: ['@medium', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
+        // Incluir pedido via API
+        clearPedidoData('assisListaMat')
+        const pedidoId = await pedido.criarPedidoViaApi("assisListaMat")
+
+        // await page.goto(`pedidos/238959`)
+        // await expect(pedido.validaPedido).toHaveValue('238959')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
 
         // Quando clico no Asistente (Lista de materiais).
-
+        await page.locator('#button-assistente-insercao').click()
+        
         // Então deverá abrir uma janela com o nome "Lista de materias".
-        // E deverá ser exibido nessa tela a imagem do item, código do item, descrição e valor.
-        // E um campo para digitação da quantidade e logo abaixo 2 botões "-" e "+".
+        await expect(page.locator('div.modal-content:visible', { hasText: 'Lista de Materiais' })).toBeVisible()
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarPedido(pedidoId)
+        
     });
 
     test('Pedido - Incluir itens no pedido pela lista de materiais', { tag: ['@high', '@regression', '@pedidos_venda', '@web'] }, async ({ page }) => {
+        const pedido: Pedido = new Pedido(page)
+        const pedidoApi: PedidoApi = new PedidoApi(page)
+        const toast: Toast = new Toast(page)
+
         // Dado que eu preenchi as informações da cabeça do pedido de venda.
         // E informei a quantidade dos itens que desejo inserir no pedido.
+        // Incluir pedido via API
+        clearPedidoData('incluirItemListaMat')
+        const pedidoId = await pedido.criarPedidoViaApi("incluirItemListaMat")
 
+        // await page.goto(`pedidos/239493`)
+        // await expect(pedido.validaPedido).toHaveValue('239493')
+        await page.goto(`pedidos/${pedidoId}`)
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+
+        // Quando clico no Asistente (Lista de materiais).
+        await page.locator('#button-assistente-insercao').click()
+        await expect(page.locator('div.modal-content:visible', { hasText: 'Lista de Materiais' })).toBeVisible()
+
+        await page.locator('div.input-group.text-center input.b-form-input.form-control').nth(0).fill('5')
+        
         // Quando clico no botão "OK" no canto inferior direito.
+        
+        //salvar id do item no json
+        const [response] = await Promise.all([
+            page.waitForResponse(async (r) => {
+                if (
+                    !r.url().includes('/v1/pedidoItem') ||
+                    r.request().method() !== 'POST' ||
+                    r.status() !== 200                    
+                ) return false
+                const body = await r.json().catch(() => null)
+                const id = body?.data?.pedidoItemId                
+                return Boolean(id && id !== 0)
+                
+            }),
+        ])
+        await page.locator('button.btn.btn-success:visible', {hasText:'Ok'}).click()
+        
+        const body = await response.json()
+        const pedidoItem = body?.data?.pedidoItemId
 
         // Então os itens que informei a quantidade deverão ser exibidos na grid do pedido de venda.
+        await expect(pedido.validaPedido).toHaveValue(pedidoId.toString())
+        await expect(pedido.gridPedido.filter({ hasText: '0511' })).toBeVisible()
+        await expect(page.locator('div.w-full td').nth(3)).toHaveText('5,00')
+
+        // Deletar item do pedido via api
+        await pedidoApi.deletarItem(pedidoItem)
+        await pedidoApi.deletarPedido(pedidoId)
     });
 })
 
